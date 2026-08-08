@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.9rem;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
+    --font-sans: var(--font-body);
+
+    --background: 240 5% 96%;
+    --foreground: 260 62% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 62% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 62% 15%;
+    --primary: 265 89% 58%;
+    --primary-foreground: 250 100% 99%;
+    --secondary: 250 89% 96%;
+    --secondary-foreground: 265 62% 20%;
+    --muted: 250 89% 96%;
+    --muted-foreground: 258 89% 28%;
+    --accent: 82 89% 50%;
+    --accent-foreground: 60 62% 16%;
+    --gold: 88 89% 50%;
+    --gold-foreground: 70 62% 17%;
+    --ember: 48 89% 43%;
+    --success: 155 89% 38%;
+    --success-foreground: 250 100% 99%;
+    --destructive: 25 89% 39%;
+    --destructive-foreground: 250 100% 99%;
+    --border: 250 89% 90%;
+    --input: 250 89% 90%;
+    --ring: 265 89% 58%;
+    --chart-1: 265 89% 58%;
+    --chart-2: 88 89% 50%;
+    --chart-3: 48 89% 43%;
+    --chart-4: 155 89% 38%;
+    --chart-5: 258 89% 28%;
+    
+    --shadow-glow: 0 0 20px 0 oklch(0.45 0.19 265 / 0.35);
+    --gradient-sunrise: linear-gradient(135deg, oklch(0.62 0.15 155) 0%, oklch(0.45 0.19 265) 100%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-body);
+  }
+}
+
+.glass-card {
+  @apply bg-card/60 backdrop-blur-xl border border-border/50 shadow-sm;
+}

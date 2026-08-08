@@ -1,0 +1,11 @@
+{
+  "name": "school-erp-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build"
+  }
+}
