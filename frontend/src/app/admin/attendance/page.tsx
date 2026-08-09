@@ -96,19 +96,19 @@ export default function AttendanceDashboardPage() {
           userRole="System Administrator"
         />
 
-        <main className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl mx-auto">
-          {/* Header Action Row */}
-          <div className="flex items-center justify-between">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-7xl mx-auto">
+          {/* Header Action Row - Fully Mobile Responsive */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div>
-              <h2 className="font-serif text-xl font-semibold text-slate-900">
+              <h2 className="font-serif text-lg sm:text-xl font-semibold text-slate-900">
                 School-wide Attendance Dashboard
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Real-time attendance statistics, class breakdown, and low attendance defaulter alerts.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <input
                 type="date"
                 min="2020-01-01"
@@ -119,33 +119,33 @@ export default function AttendanceDashboardPage() {
                   const token = localStorage.getItem('access_token');
                   if (token) fetchAttendanceData(token, e.target.value);
                 }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs focus:border-amber-500 focus:outline-none shrink-0"
               />
 
               <Link
                 href="/admin/leave-requests"
-                className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-lg px-3 py-2 text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm"
+                className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-xl px-3 py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0"
               >
                 <FileText className="h-4 w-4 text-amber-500" strokeWidth={1.75} />
-                <span>Leave Requests Oversight</span>
+                <span>Leave Requests</span>
               </Link>
 
               <Link
                 href="/admin/settings/attendance"
-                className="bg-slate-900 text-white rounded-lg px-3 py-2 text-xs font-medium hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="bg-slate-900 text-white rounded-xl px-3.5 py-2 text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0"
               >
                 <Settings className="h-4 w-4" strokeWidth={1.75} />
-                <span>Configure Policy</span>
+                <span>Policy Config</span>
               </Link>
             </div>
           </div>
 
           {/* 3 Summary Cards */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">School Attendance ({selectedDate})</span>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0">
                   <CalendarCheck className="h-4 w-4" strokeWidth={1.75} />
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function AttendanceDashboardPage() {
                 {summaryData ? summaryData.todayPercent : 0}%
               </div>
               {summaryData && (
-                <div className={`flex items-center gap-1 text-[11px] font-medium ${summaryData.trendPercent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <div className={`flex items-center gap-1 text-[11px] font-semibold ${summaryData.trendPercent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {summaryData.trendPercent >= 0 ? (
                     <TrendingUp className="h-3 w-3" />
                   ) : (
@@ -166,10 +166,10 @@ export default function AttendanceDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">This Week's Average</span>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-slate-700 border border-slate-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-slate-700 border border-slate-100 shrink-0">
                   <Users className="h-4 w-4" strokeWidth={1.75} />
                 </div>
               </div>
@@ -181,61 +181,61 @@ export default function AttendanceDashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-2 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">Defaulter Students (&lt;{summaryData?.minPolicyThreshold || 75}%)</span>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 shrink-0">
                   <AlertTriangle className="h-4 w-4" strokeWidth={1.75} />
                 </div>
               </div>
               <div className="font-serif text-2xl font-semibold text-rose-600">
                 {defaulters.length}
               </div>
-              <div className="text-[11px] text-rose-600 font-medium">
+              <div className="text-[11px] text-rose-600 font-semibold">
                 Requires Academic Intervention
               </div>
             </div>
           </div>
 
           {/* Main Grid Layout: Class-wise Table (2 cols) & Defaulters List (1 col) */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Class-wise Breakdown Table */}
-            <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-              <div className="border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+              <div className="border-b border-slate-100 p-4 sm:p-5 flex justify-between items-center">
                 <div>
                   <h3 className="font-serif text-base font-semibold text-slate-900">
                     Class-wise Attendance Breakdown ({selectedDate})
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Live present vs total count per section.
                   </p>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs min-w-[500px]">
                   <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-medium">
                     <tr>
-                      <th className="px-6 py-3">Class & Section</th>
-                      <th className="px-6 py-3">Present / Total</th>
-                      <th className="px-6 py-3">Attendance %</th>
-                      <th className="px-6 py-3">Policy Compliance</th>
+                      <th className="px-4 sm:px-6 py-3.5">Class & Section</th>
+                      <th className="px-4 sm:px-6 py-3.5">Present / Total</th>
+                      <th className="px-4 sm:px-6 py-3.5">Attendance %</th>
+                      <th className="px-4 sm:px-6 py-3.5">Policy Compliance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {summaryData?.classBreakdown?.slice(0, 10).map((item: any, idx: number) => (
                       <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-3.5 font-medium text-slate-900 flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-amber-500" strokeWidth={1.75} />
+                        <td className="px-4 sm:px-6 py-3.5 font-semibold text-slate-900 flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-amber-500 shrink-0" strokeWidth={1.75} />
                           <span>{item.className}-{item.section}</span>
                         </td>
-                        <td className="px-6 py-3.5 text-slate-600">
+                        <td className="px-4 sm:px-6 py-3.5 text-slate-600 font-medium">
                           {item.presentCount} / {item.totalCount}
                         </td>
-                        <td className="px-6 py-3.5 font-semibold text-slate-900">
+                        <td className="px-4 sm:px-6 py-3.5 font-bold text-slate-900">
                           {item.attendancePercent}%
                         </td>
-                        <td className="px-6 py-3.5">
+                        <td className="px-4 sm:px-6 py-3.5">
                           <StatusPill
                             status={item.trendUp ? 'active' : 'error'}
                             label={item.trendUp ? 'Compliant' : 'Below Threshold'}
@@ -249,31 +249,31 @@ export default function AttendanceDashboardPage() {
             </div>
 
             {/* Defaulters Side Panel */}
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <ShieldAlert className="h-5 w-5 text-rose-600" strokeWidth={1.75} />
+                <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0" strokeWidth={1.75} />
                 <h3 className="font-serif text-base font-semibold text-slate-900">
                   Attendance Defaulters List
                 </h3>
               </div>
 
               <p className="text-xs text-slate-500">
-                Calculated over term working days using <code className="font-mono text-slate-800">halfDayCountsAs={summaryData?.halfDayWeighting || 0.5}</code> policy.
+                Calculated over term working days using <code className="font-mono text-slate-800 bg-slate-100 px-1 py-0.5 rounded">halfDayCountsAs={summaryData?.halfDayWeighting || 0.5}</code> policy.
               </p>
 
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                 {defaulters.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-4 text-center">
+                  <p className="text-xs text-slate-400 py-6 text-center">
                     No students currently below the {summaryData?.minPolicyThreshold || 75}% threshold.
                   </p>
                 ) : (
                   defaulters.map((def, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg border border-rose-100 bg-rose-50/50 p-3 text-xs space-y-1.5"
+                      className="rounded-xl border border-rose-100 bg-rose-50/50 p-3 text-xs space-y-1.5"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-900">{def.name}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-900 truncate">{def.name}</span>
                         <CodeBadge code={def.studentCode} />
                       </div>
 
@@ -284,9 +284,9 @@ export default function AttendanceDashboardPage() {
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center pt-1 border-t border-rose-100/60 text-[10px] text-slate-500">
+                      <div className="flex justify-between items-center pt-1.5 border-t border-rose-100/60 text-[10.5px] text-slate-500">
                         <span>Absents: {def.absentCount} | Half-days: {def.halfDayCount}</span>
-                        <span className="text-amber-700 font-medium hover:underline cursor-pointer">
+                        <span className="text-amber-700 font-semibold hover:underline cursor-pointer">
                           View Details &rarr;
                         </span>
                       </div>
