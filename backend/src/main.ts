@@ -22,7 +22,6 @@ async function purgeDemoData() {
       }
     });
     await prisma.leaveRequest.deleteMany({});
-    await prisma.feeInvoice.deleteMany({});
 
     console.log('Demo data purged! Only Super Admin remains.');
     await prisma.$disconnect();
