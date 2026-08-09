@@ -75,11 +75,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col md:flex-row p-3 sm:p-4 gap-4 sm:gap-6 overflow-y-auto text-slate-800 font-sans selection:bg-red-500 selection:text-white">
+    <div className="h-screen w-screen bg-white flex p-3 sm:p-4 gap-4 sm:gap-6 overflow-hidden text-slate-800 font-sans selection:bg-red-500 selection:text-white">
       <Toaster position="top-center" />
 
-      {/* Left Hero Card Frame - Original Exact Rounded Image Frame */}
-      <div className="w-full md:flex-1 relative h-48 sm:h-64 md:h-full rounded-[24px] overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs flex flex-col justify-between p-3 sm:p-4 group shrink-0">
+      {/* Left Hero Card Frame - Pristine Original Full Height Design on Desktop/Tablet */}
+      <div className="hidden md:flex md:flex-1 relative h-full rounded-[24px] overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs flex-col justify-between p-4 group">
         {/* Main Campus Image */}
         <img
           src={campusImage.src}
@@ -88,14 +88,14 @@ export default function LoginPage() {
         />
 
         {/* Soft Ambient Tint Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-black/10 pointer-events-none" />
 
         {/* Top Spacer */}
         <div className="relative z-10" />
 
         {/* Red School Badge overlay at bottom left inside the rounded campus card */}
-        <div className="relative z-10 bg-[#D32F2F]/95 backdrop-blur-md text-white p-3 sm:p-5 rounded-2xl shadow-xl border border-red-500/40 flex items-center gap-3 sm:gap-4 max-w-sm sm:max-w-md">
-          <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-white p-1 shrink-0 shadow-sm flex items-center justify-center">
+        <div className="relative z-10 bg-[#D32F2F]/95 backdrop-blur-md text-white p-4 sm:p-5 rounded-2xl shadow-xl border border-red-500/40 flex items-center gap-4 max-w-sm sm:max-w-md">
+          <div className="h-14 w-14 rounded-xl bg-white p-1 shrink-0 shadow-sm flex items-center justify-center">
             <img
               src={logoAsset.src}
               alt="Marudhar Emblem"
@@ -103,11 +103,11 @@ export default function LoginPage() {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-xs sm:text-base leading-tight uppercase tracking-tight text-white">
+            <span className="font-bold text-sm sm:text-base leading-tight uppercase tracking-tight text-white">
               MARUDHAR DEFENCE SEC. SCHOOL
             </span>
 
-            <span className="text-[10px] sm:text-[11px] text-white/90 mt-0.5 flex items-center gap-1 font-mono">
+            <span className="text-[11px] text-white/90 mt-0.5 flex items-center gap-1 font-mono">
               <MapPin className="h-3 w-3 shrink-0" /> Jaipur, Rajasthan
             </span>
           </div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
 
       {/* Right Login Panel - Matches exact original CSS (430px width on desktop, full width on mobile) */}
       <aside
-        className="w-full md:w-[430px] shrink-0 h-auto md:h-full bg-white flex flex-col justify-between py-4 md:py-2 px-4 sm:px-8 md:px-10 overflow-y-auto"
+        className="w-full md:w-[430px] shrink-0 h-full bg-white flex flex-col justify-between py-2 px-4 sm:px-10 overflow-y-auto mx-auto"
         style={{
           boxSizing: 'border-box',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
           {/* Top Center Logo & Address */}
           <div className="flex flex-col items-center justify-center text-center space-y-2 pb-3 border-b border-slate-100 shrink-0">
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg border border-slate-200 bg-white p-1.5 shadow-2xs flex items-center justify-center">
+            <div className="h-16 w-16 rounded-lg border border-slate-200 bg-white p-1.5 shadow-2xs flex items-center justify-center">
               <img
                 src={logoAsset.src}
                 alt="Marudhar Defence Sec. School Logo"
@@ -138,10 +138,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="font-bold text-slate-900 text-xs sm:text-base tracking-tight uppercase leading-tight">
+              <h1 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight uppercase leading-tight">
                 MARUDHAR DEFENCE SEC. SCHOOL
               </h1>
-              <p className="text-[10.5px] sm:text-[11.5px] text-slate-500 mt-1 leading-snug font-normal max-w-[280px] mx-auto">
+              <p className="text-[11.5px] text-slate-500 mt-1 leading-snug font-normal max-w-[280px] mx-auto">
                 Plot No-27, Ganesh Nagar Vistar (Ganesh Ext.), near Kanakpura Railway Station, Jhotwara, Jaipur, Rajasthan 302012.
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
 
           {/* Form Header */}
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Sign In</h2>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sign In</h2>
           </div>
 
           {/* Error Banner */}
