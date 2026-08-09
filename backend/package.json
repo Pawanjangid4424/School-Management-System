@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "prisma db push && prisma generate && nest build && ts-node prisma/seed.ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -38,7 +38,8 @@
     "passport-jwt": "^4.0.1",
     "prisma": "^5.8.1",
     "reflect-metadata": "^0.2.1",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@nestjs/schematics": "^10.1.0",
@@ -47,7 +48,6 @@
     "@types/node": "^20.11.5",
     "@types/passport-jwt": "^4.0.1",
     "ts-jest": "^29.4.12",
-    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
