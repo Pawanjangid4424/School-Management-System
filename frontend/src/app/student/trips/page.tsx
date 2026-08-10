@@ -18,8 +18,8 @@ export default function StudentTripsPage() {
   const [permissions, setPermissions] = useState<any[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -49,6 +49,28 @@ export default function StudentTripsPage() {
       }
     } catch (e) {
       console.error('Failed to fetch trips', e);
+    }
+  };
+
+  const handleRespondConsent = async (permissionId: string, status: 'GRANTED' | 'DENIED', name: string) => {
+    try {
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const res = await fetch(`${apiUrl}/trips/permission/${permissionId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status, respondedByName: name }),
+      });
+
+      if (res.ok) {
+        fetchTrips(token as string);
+      }
+    } catch (e) {
+      console.error('Error responding to trip consent', e);
     }
   };
 
@@ -116,7 +138,8 @@ export default function StudentTripsPage() {
                     respondedByName={item.respondedByName || ''}
                     signatureId={item.signatureId || ''}
                     respondedAt={item.respondedAt || ''}
-                    isStudentView={true}
+                    isStudentView={false}
+                    onRespond={(status, name) => handleRespondConsent(item.permissionId, status, name)}
                   />
                 </div>
               );

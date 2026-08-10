@@ -73,6 +73,14 @@ export class TripsTimetableController {
     return this.service.getConsentStatus(tenantId, tripId);
   }
 
+  @Post('trips/permission/:permissionId/respond')
+  async respondToTripPermission(
+    @Param('permissionId') permissionId: string,
+    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string },
+  ) {
+    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId);
+  }
+
   // --- TIMETABLE & SCHEDULE MANAGEMENT ---
 
   @Get('timetable')

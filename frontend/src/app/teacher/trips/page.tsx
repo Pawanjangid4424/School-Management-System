@@ -255,7 +255,7 @@ export default function TeacherTripsPage() {
       });
 
       if (res.ok) {
-        setCreateSuccess(`Trip proposed & ${selectedStudentIds.length} consent forms dispatched!`);
+        setCreateSuccess(`Trip proposed with ${selectedStudentIds.length} target students! Submitted for Admin Approval. Consent forms will automatically dispatch to parents once Admin approves.`);
         setShowCreateModal(false);
         fetchTrips(token as string);
       }

@@ -318,6 +318,40 @@ export class TripsTimetableService {
     };
   }
 
+  async respondToTripPermission(
+    permissionId: string,
+    status: 'GRANTED' | 'DENIED',
+    respondedByName: string,
+    signatureId?: string,
+  ) {
+    const perm = await this.prisma.tripPermission.findUnique({
+      where: { id: permissionId },
+      include: { trip: true, student_profile: true },
+    });
+
+    if (!perm) {
+      throw new NotFoundException('Trip permission document not found');
+    }
+
+    const genSignature = signatureId || `SIG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const updated = await this.prisma.tripPermission.update({
+      where: { id: permissionId },
+      data: {
+        permission_status: status.toUpperCase(),
+        responded_at: new Date(),
+        responded_by_name: respondedByName.trim(),
+        signature_id: genSignature,
+      },
+      include: {
+        trip: true,
+        student_profile: true,
+      },
+    });
+
+    return updated;
+  }
+
   // --- TIMETABLE & SCHEDULE MANAGEMENT ---
 
   async createTimetableSlot(tenantId: string, dto: CreateTimetableSlotDto) {
