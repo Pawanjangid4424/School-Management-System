@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BrevoEmailDispatchService } from './brevo-email-dispatch.service';
+import { ResendEmailDispatchService } from './resend-email-dispatch.service';
 
 @Injectable()
 export class NotificationProcessorService {
@@ -8,7 +8,7 @@ export class NotificationProcessorService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly brevoDispatch: BrevoEmailDispatchService,
+    private readonly resendDispatch: ResendEmailDispatchService,
   ) {}
 
   /**
@@ -56,12 +56,13 @@ export class NotificationProcessorService {
         const recipientEmail = item.recipient_email || 'parent@gmail.com';
         const recipientName = item.recipient_name || 'Parent / Guardian';
 
-        // Dispatch Email via Brevo REST API
-        await this.brevoDispatch.sendTransactionalEmail({
+        // Dispatch Email via Resend REST API
+        await this.resendDispatch.sendTransactionalEmail({
           toEmail: recipientEmail,
           toName: recipientName,
           subject: emailContent.subject,
           htmlContent: emailContent.htmlContent,
+          schoolName: (emailContent as any).schoolName || 'School Management ERP',
         });
 
         // Dispatch Transactional SMS if TRIP_CONSENT_REQUIRED
@@ -77,7 +78,7 @@ export class NotificationProcessorService {
               const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
               const smsText = `Action Required: Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/consent/${perm.id}`;
               
-              await this.brevoDispatch.sendTransactionalSMS({
+              await this.resendDispatch.sendTransactionalSMS({
                 toPhone: mobileNo || '+91887533348',
                 content: smsText,
               });
@@ -107,7 +108,7 @@ export class NotificationProcessorService {
           data: {
             retries: nextRetries,
             status: newStatus,
-            error_message: error.message || 'Brevo Dispatch Error',
+            error_message: error.message || 'Resend Dispatch Error',
           },
         });
       }
@@ -123,7 +124,7 @@ export class NotificationProcessorService {
   /**
    * Formats HTML email template based on notification type.
    */
-  async formatEmailContent(item: any): Promise<{ subject: string; htmlContent: string }> {
+  async formatEmailContent(item: any): Promise<{ subject: string; htmlContent: string; schoolName?: string }> {
     const type = item.type;
     const entityId = item.related_entity_id;
     const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
@@ -131,9 +132,17 @@ export class NotificationProcessorService {
     if (type === 'TRIP_CONSENT_REQUIRED') {
       const perm = await this.prisma.tripPermission.findUnique({
         where: { id: entityId },
-        include: { trip: true, student_profile: true },
+        include: {
+          trip: {
+            include: {
+              tenant: true,
+            },
+          },
+          student_profile: true,
+        },
       });
 
+      const schoolName = perm?.trip?.tenant?.school_name || 'St. Jude Academic School';
       const destination = perm?.trip?.destination || 'School Field Trip';
       const tripDate = perm?.trip?.trip_date ? new Date(perm.trip.trip_date).toISOString().split('T')[0] : 'Upcoming Date';
       const studentName = perm?.student_profile ? `${perm.student_profile.first_name} ${perm.student_profile.last_name}` : 'your child';
@@ -146,13 +155,14 @@ export class NotificationProcessorService {
       const consentUrl = `${baseUrl}/consent/${perm?.id || entityId}`;
 
       return {
-        subject: `[ACTION REQUIRED] Official Field Trip Parent Consent Form for ${studentName}`,
+        schoolName,
+        subject: `[ACTION REQUIRED] ${schoolName}: Official Field Trip Consent Form for ${studentName}`,
         htmlContent: `
           <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; color: #0f172a; shadow: 0 4px 6px rgba(0,0,0,0.05);">
             
             <!-- Header Banner -->
             <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 24px 28px; text-align: center; border-bottom: 3px solid #f59e0b;">
-              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #f59e0b; margin-bottom: 4px;">St. Jude Academic School</div>
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #f59e0b; margin-bottom: 4px;">${schoolName}</div>
               <h1 style="font-size: 20px; font-weight: 700; margin: 0; color: #ffffff;">Field Trip Parent Consent Request</h1>
             </div>
 
@@ -191,12 +201,12 @@ export class NotificationProcessorService {
               </div>
 
               <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 16px;">
-                Alternatively, log into the Parent/Student Portal to review rules, cost breakdown, and submit digital signature.
+                Direct Link: <a href="${consentUrl}">${consentUrl}</a>
               </p>
 
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
               <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-                St. Jude Academic School Administration • Automated Notification System
+                ${schoolName} Administration • Automated Parent Notification System
               </p>
             </div>
           </div>
