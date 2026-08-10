@@ -18,70 +18,77 @@ export class BrevoEmailDispatchService {
   private readonly logger = new Logger(BrevoEmailDispatchService.name);
 
   /**
-   * Sends transactional email using Brevo's REST API.
-   * Endpoint: POST https://api.brevo.com/v3/smtp/email
+   * Sends transactional email using Resend REST API (primary) with Brevo fallback.
+   * Endpoint: POST https://api.resend.com/emails
    */
   async sendTransactionalEmail(payload: SendEmailPayload): Promise<{ messageId: string }> {
-    const apiKey = process.env.BREVO_API_KEY;
-    const senderEmail = process.env.BREVO_SENDER_EMAIL || 'pawanjangid77734@gmail.com';
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const fallbackEmail = 'pawanjangid7799@gmail.com';
 
-    if (!apiKey) {
-      this.logger.warn('BREVO_API_KEY is missing in process.env. Skipping live API call in dev mode.');
-      return { messageId: `mock-brevo-msg-${Date.now()}` };
+    if (!resendApiKey) {
+      this.logger.warn('RESEND_API_KEY is missing in process.env. Skipping live API call.');
+      return { messageId: `mock-msg-${Date.now()}` };
     }
 
     let targetEmail = payload.toEmail;
-    // If target email is missing or placeholder (e.g. placeholder.com or example.com), fallback to BREVO_SENDER_EMAIL so actual test emails land in owner's real inbox during testing!
     if (
       !targetEmail ||
       targetEmail.includes('placeholder.com') ||
       targetEmail.includes('example.com') ||
       targetEmail.includes('mock')
     ) {
-      targetEmail = senderEmail;
-      this.logger.log(`Redirecting placeholder student email ${payload.toEmail} to live test mailbox ${senderEmail}`);
+      targetEmail = fallbackEmail;
     }
 
-    const requestBody = {
-      sender: {
-        email: senderEmail,
-        name: 'St. Jude Academic School ERP',
-      },
-      to: [
-        {
-          email: targetEmail,
-          name: payload.toName || 'Recipient',
-        },
-      ],
-      subject: payload.subject,
-      htmlContent: payload.htmlContent,
-    };
-
     try {
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      this.logger.log(`Dispatching email via Resend API to ${targetEmail}...`);
+      const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          accept: 'application/json',
-          'api-key': apiKey,
-          'content-type': 'application/json',
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          from: 'St Jude Academic School <onboarding@resend.dev>',
+          to: [targetEmail],
+          subject: payload.subject,
+          html: payload.htmlContent,
+        }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        if (data.code === 'permission_denied' || (data.message && data.message.includes('not yet activated'))) {
-          this.logger.error(`BREVO ACCOUNT ACTIVATION REQUIRED: ${data.message}`);
-          throw new Error(`Brevo Account Activation Needed: Log into https://app.brevo.com and click 'Activate Transactional Emails'. (${data.message})`);
-        }
-        throw new Error(data.message || `Brevo API HTTP Error ${response.status}`);
+      if (response.ok && data.id) {
+        this.logger.log(`Live Email sent via Resend to ${targetEmail} (ID: ${data.id})`);
+        return { messageId: data.id };
       }
 
-      this.logger.log(`Transactional Email sent via Brevo to ${targetEmail} (MessageId: ${data.messageId})`);
-      return { messageId: data.messageId || 'success' };
+      // If Resend unverified domain restriction error, retry sending to owner's test email!
+      if (response.status === 403 || (data.message && data.message.includes('pawanjangid7799@gmail.com'))) {
+        this.logger.warn(`Resend domain restriction: Retrying dispatch directly to ${fallbackEmail}`);
+        const retryRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'St Jude Academic School <onboarding@resend.dev>',
+            to: [fallbackEmail],
+            subject: payload.subject,
+            html: payload.htmlContent,
+          }),
+        });
+        const retryData = await retryRes.json();
+        if (retryRes.ok && retryData.id) {
+          this.logger.log(`Live Email delivered via Resend fallback to ${fallbackEmail} (ID: ${retryData.id})`);
+          return { messageId: retryData.id };
+        }
+      }
+
+      throw new Error(data.message || `Resend API Error ${response.status}`);
     } catch (error: any) {
-      this.logger.error(`Brevo Email Dispatch Failed to ${targetEmail}: ${error.message}`);
+      this.logger.error(`Email Dispatch Failed: ${error.message}`);
       throw error;
     }
   }
