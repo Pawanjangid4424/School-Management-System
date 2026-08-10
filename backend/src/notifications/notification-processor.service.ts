@@ -56,13 +56,36 @@ export class NotificationProcessorService {
         const recipientEmail = item.recipient_email || 'parent@gmail.com';
         const recipientName = item.recipient_name || 'Parent / Guardian';
 
-        // Dispatch via Brevo REST API
+        // Dispatch Email via Brevo REST API
         await this.brevoDispatch.sendTransactionalEmail({
           toEmail: recipientEmail,
           toName: recipientName,
           subject: emailContent.subject,
           htmlContent: emailContent.htmlContent,
         });
+
+        // Dispatch Transactional SMS if TRIP_CONSENT_REQUIRED
+        if (item.type === 'TRIP_CONSENT_REQUIRED') {
+          try {
+            const perm = await this.prisma.tripPermission.findUnique({
+              where: { id: item.related_entity_id },
+              include: { trip: true, student_profile: true },
+            });
+            if (perm) {
+              const mobileNo = perm.student_profile?.mobile_no;
+              const dest = perm.trip?.destination || 'Field Trip';
+              const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
+              const smsText = `St. Jude School: Action Required - Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/student/trips`;
+              
+              await this.brevoDispatch.sendTransactionalSMS({
+                toPhone: mobileNo || '+91887533348',
+                content: smsText,
+              });
+            }
+          } catch (smsErr) {
+            this.logger.warn(`SMS dispatch warning: ${smsErr}`);
+          }
+        }
 
         // Mark as SENT on success
         await this.prisma.notificationQueueItem.update({
