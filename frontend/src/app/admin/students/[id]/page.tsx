@@ -12,6 +12,48 @@ import { Topbar } from '@/components/layout/Topbar';
 import { CodeBadge } from '@/components/ui/CodeBadge';
 import { StatusPill } from '@/components/ui/StatusPill';
 
+// Canvas image compression for mobile edit uploads
+const compressImage = (file: File, maxDim = 600, quality = 0.75): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(event.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
@@ -154,6 +196,30 @@ export default function EditStudentPage() {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setError('');
+      const compressed = await compressImage(file, 600, 0.75);
+      handleChange('root', 'photoUrl', compressed);
+    } catch (err) {
+      setError('Failed to process image file.');
+    }
+  };
+
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setError('');
+      const compressed = await compressImage(file, 600, 0.75);
+      handleChange('root', 'signatureUrl', compressed);
+    } catch (err) {
+      setError('Failed to process signature file.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep !== 4) {
@@ -209,7 +275,7 @@ export default function EditStudentPage() {
       if (!res.ok) throw new Error(data.message || 'Failed to update student profile');
       setCreatedResult(data);
     } catch (err: any) {
-      setError(err.message || 'An error occurred while creating the student.');
+      setError(err.message || 'An error occurred while updating the student.');
     } finally {
       setSubmitting(false);
     }
@@ -222,51 +288,79 @@ export default function EditStudentPage() {
       <Sidebar role={user?.role} tenantName={user?.tenant_name} />
       <div className="flex-1 pl-0 md:pl-64 transition-all duration-300 min-w-0">
         <Topbar title="Edit Student Profile" userName={`Welcome, ${user?.username}`} userRole="System Administrator" />
-        <main className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-6xl mx-auto">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-6xl mx-auto">
           
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Link href="/admin/students" className="flex items-center gap-1 hover:text-slate-900 transition-colors">
               <ArrowLeft className="h-3.5 w-3.5" /> <span>Students Directory</span>
             </Link>
             <span>/</span>
-            <span className="text-slate-900 font-medium">Edit Student</span>
+            <span className="text-slate-900 font-medium">Edit Student Profile</span>
           </div>
 
           {createdResult ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm space-y-6">
-              {/* Success Result Component (Keep existing code from here) */}
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+            <div className="rounded-2xl border border-emerald-200 bg-white p-4 sm:p-8 shadow-xl space-y-5">
+              <div className="flex items-center gap-4 bg-emerald-50 border border-emerald-200 p-4 sm:p-6 rounded-xl text-emerald-900">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shrink-0">
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="font-serif text-xl font-semibold text-slate-900">Student Profile Successfully Updated!</h2>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-slate-900">
+                    Student Profile Updated Successfully!
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    All personal details and guardian linkages have been saved.
+                  </p>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1">Generated Student Code:</span>
-                    <CodeBadge code={createdResult.studentCode} className="bg-white px-3 py-1.5" />
-                  </div>
-                  <div>
-                    <span className="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1">System Username:</span>
-                    <CodeBadge code={createdResult.username} className="bg-white px-3 py-1.5" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <button type="button" onClick={() => window.location.reload()} className="bg-slate-900 text-white rounded-lg px-4 py-2 text-xs font-medium">Add Another Student</button>
-                <Link href="/admin/students" className="border border-dashed border-slate-300 text-slate-600 rounded-lg px-4 py-2 text-xs font-medium">View Directory</Link>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <Link
+                  href="/admin/students"
+                  className="bg-slate-900 text-white rounded-xl px-5 py-2.5 text-xs font-bold hover:bg-slate-800 transition-colors"
+                >
+                  Return to Students Directory
+                </Link>
+                <Link
+                  href={`/admin/students/${studentId}/view`}
+                  className="border border-slate-300 text-slate-700 rounded-xl px-5 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  View Profile Preview &rarr;
+                </Link>
               </div>
             </div>
           ) : (
-            <div className="flex gap-6">
-              {/* Sidebar Navigation for Form Steps */}
-              <div className="w-64 shrink-0">
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-24">
+            <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
+              
+              {/* Step Navigation Bar for Mobile & Tablet (< lg) */}
+              <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
+                {[
+                  { step: 1, label: 'Personal', icon: User },
+                  { step: 2, label: 'Address', icon: MapPin },
+                  { step: 3, label: 'Guardian', icon: Users },
+                  { step: 4, label: 'Photo', icon: FileText }
+                ].map((item) => (
+                  <button
+                    key={item.step}
+                    type="button"
+                    onClick={() => setCurrentStep(item.step)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      currentStep === item.step
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <item.icon className="h-3.5 w-3.5 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Sidebar Navigation for Form Steps (Desktop >= lg) */}
+              <div className="hidden lg:block lg:w-64 shrink-0">
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden sticky top-24">
                   <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                    <h3 className="font-semibold text-sm text-slate-800">Enrollment Steps</h3>
+                    <h3 className="font-semibold text-sm text-slate-800">Edit Steps</h3>
                   </div>
                   <nav className="flex flex-col">
                     {[
@@ -279,14 +373,14 @@ export default function EditStudentPage() {
                         key={item.step}
                         type="button"
                         onClick={() => setCurrentStep(item.step)}
-                        className={`flex items-center gap-3 px-5 py-4 text-xs font-medium transition-colors border-l-2 ${
+                        className={`flex items-center gap-3 px-5 py-4 text-xs font-medium transition-colors border-l-2 cursor-pointer ${
                           currentStep === item.step
-                            ? 'border-amber-500 bg-amber-50/30 text-amber-700'
+                            ? 'border-amber-500 bg-amber-50/30 text-amber-700 font-semibold'
                             : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
-                        <item.icon className={`h-4 w-4 ${currentStep === item.step ? 'text-amber-600' : 'text-slate-400'}`} />
-                        {item.label}
+                        <item.icon className={`h-4 w-4 shrink-0 ${currentStep === item.step ? 'text-amber-600' : 'text-slate-400'}`} />
+                        <span>{item.label}</span>
                       </button>
                     ))}
                   </nav>
@@ -294,45 +388,45 @@ export default function EditStudentPage() {
               </div>
 
               {/* Main Form Area */}
-              <div className="flex-1 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {error && <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">{error}</div>}
+              <div className="flex-1 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 lg:p-8 shadow-xs min-w-0">
+                <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                  {error && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">{error}</div>}
 
                   {/* STEP 1: Personal Details */}
                   {currentStep === 1 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Student Personal Details</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Student Personal Details</h2>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name *</label>
-                          <input type="text" required value={formData.firstName} onChange={(e) => handleChange('root', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name *</label>
+                          <input type="text" required value={formData.firstName} onChange={(e) => handleChange('root', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Middle Name</label>
-                          <input type="text" value={formData.middleName} onChange={(e) => handleChange('root', 'middleName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Middle Name</label>
+                          <input type="text" value={formData.middleName} onChange={(e) => handleChange('root', 'middleName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name *</label>
-                          <input type="text" required value={formData.lastName} onChange={(e) => handleChange('root', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name *</label>
+                          <input type="text" required value={formData.lastName} onChange={(e) => handleChange('root', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Class *</label>
-                          <select required value={formData.classNumber} onChange={(e) => handleChange('root', 'classNumber', Number(e.target.value))} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Class *</label>
+                          <select required value={formData.classNumber} onChange={(e) => handleChange('root', 'classNumber', Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             {Array.from({ length: 12 }, (_, i) => i + 1).map(c => <option key={c} value={c}>Grade {c}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Section *</label>
-                          <select required value={formData.section} onChange={(e) => handleChange('root', 'section', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Section *</label>
+                          <select required value={formData.section} onChange={(e) => handleChange('root', 'section', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             {['A','B','C','D'].map(s => <option key={s} value={s}>Section {s}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
                             <span>Stream</span>
                             {formData.classNumber < 11 && (
                               <span className="text-[10px] text-slate-400 font-normal">(Grade 11 & 12 only)</span>
@@ -342,9 +436,9 @@ export default function EditStudentPage() {
                             disabled={formData.classNumber < 11}
                             value={formData.stream}
                             onChange={(e) => handleChange('root', 'stream', e.target.value)}
-                            className={`w-full rounded-lg border px-3 py-2 text-xs focus:outline-none ${
+                            className={`w-full rounded-xl border px-3.5 py-2.5 text-xs focus:outline-none ${
                               formData.classNumber >= 11
-                                ? 'border-slate-200 bg-slate-50 focus:border-amber-500 focus:bg-white'
+                                ? 'border-slate-200 bg-slate-50 text-slate-900 focus:border-amber-500 focus:bg-white'
                                 : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
                             }`}
                           >
@@ -359,46 +453,46 @@ export default function EditStudentPage() {
                             )}
                           </select>
                         </div>
+
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Roll Number *</label>
-                          <input type="number" required min="1" value={formData.rollNumber} onChange={(e) => handleChange('root', 'rollNumber', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Roll Number *</label>
+                          <input type="number" required min="1" value={formData.rollNumber} onChange={(e) => handleChange('root', 'rollNumber', Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Date of Birth</label>
+                          <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('root', 'dateOfBirth', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile No. *</label>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                            <input
+                              type="text"
+                              required
+                              maxLength={10}
+                              value={formData.mobileNo}
+                              onChange={(e) => handleChange('root', 'mobileNo', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
+                            />
+                          </div>
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Date of Birth</label>
-                          <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('root', 'dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Gender</label>
-                          <select value={formData.gender} onChange={(e) => handleChange('root', 'gender', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
+                          <select value={formData.gender} onChange={(e) => handleChange('root', 'gender', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option>Male</option><option>Female</option><option>Other</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Blood Group</label>
-                          <select value={formData.bloodGroup} onChange={(e) => handleChange('root', 'bloodGroup', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Blood Group</label>
+                          <select value={formData.bloodGroup} onChange={(e) => handleChange('root', 'bloodGroup', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select...</option>
                             {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg}>{bg}</option>)}
                           </select>
                         </div>
-
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Religion</label>
-                          <select value={formData.religion} onChange={(e) => handleChange('root', 'religion', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
-                            <option value="">Select...</option>
-                            <option>Hindu</option><option>Muslim</option><option>Christian</option><option>Sikh</option><option>Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Category</label>
-                          <select value={formData.category} onChange={(e) => handleChange('root', 'category', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
-                            <option value="">Select...</option>
-                            <option>General</option><option>OBC</option><option>SC</option><option>ST</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Aadhar No.</label>
-                          <input type="text" value={formData.aadharNo} onChange={(e) => handleChange('root', 'aadharNo', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Aadhar No.</label>
+                          <input type="text" maxLength={14} value={formData.aadharNo} onChange={(e) => handleChange('root', 'aadharNo', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                       </div>
                     </div>
@@ -406,96 +500,57 @@ export default function EditStudentPage() {
 
                   {/* STEP 2: Address Details */}
                   {currentStep === 2 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Address Details</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Address Details</h2>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800">Permanent Address</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="col-span-1 md:col-span-2">
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Address Details</label>
-                          <textarea rows={2} value={formData.permanentAddress.addressDetails} onChange={(e) => handleChange('permanentAddress', 'addressDetails', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">Permanent Address</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Address Details</label>
+                          <textarea rows={2} value={formData.permanentAddress.addressDetails} onChange={(e) => handleChange('permanentAddress', 'addressDetails', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">City / Village</label>
-                          <input type="text" value={formData.permanentAddress.city} onChange={(e) => handleChange('permanentAddress', 'city', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">City / Village</label>
+                          <input type="text" value={formData.permanentAddress.city} onChange={(e) => handleChange('permanentAddress', 'city', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">State</label>
-                          <input type="text" value={formData.permanentAddress.state} onChange={(e) => handleChange('permanentAddress', 'state', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
+                          <input type="text" value={formData.permanentAddress.state} onChange={(e) => handleChange('permanentAddress', 'state', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Pin Code</label>
-                          <input type="text" value={formData.permanentAddress.pinCode} onChange={(e) => handleChange('permanentAddress', 'pinCode', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Pin Code</label>
+                          <input type="text" value={formData.permanentAddress.pinCode} onChange={(e) => handleChange('permanentAddress', 'pinCode', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none font-mono" />
                         </div>
-                      </div>
-
-                      <div className="pt-6 mt-6 border-t border-slate-100">
-                        <div className="flex items-center gap-3 mb-4">
-                          <h3 className="text-sm font-medium text-slate-800">Local Address</h3>
-                          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" checked={formData.sameAsPermanent} onChange={(e) => handleChange('root', 'sameAsPermanent', e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
-                            Same as Permanent Address
-                          </label>
-                        </div>
-
-                        {!formData.sameAsPermanent && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="col-span-1 md:col-span-2">
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Address Details</label>
-                              <textarea rows={2} value={formData.localAddress.addressDetails} onChange={(e) => handleChange('localAddress', 'addressDetails', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">City / Village</label>
-                              <input type="text" value={formData.localAddress.city} onChange={(e) => handleChange('localAddress', 'city', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Pin Code</label>
-                              <input type="text" value={formData.localAddress.pinCode} onChange={(e) => handleChange('localAddress', 'pinCode', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
 
                   {/* STEP 3: Guardian Details */}
                   {currentStep === 3 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Guardian Details</h2>
-                      </div>
-                      
-                      <h3 className="text-sm font-medium text-slate-800">Father's Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
-                          <input type="text" value={formData.fatherDetails.firstName} onChange={(e) => handleChange('fatherDetails', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                          <input type="text" value={formData.fatherDetails.lastName} onChange={(e) => handleChange('fatherDetails', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Mobile No.</label>
-                          <input type="text" value={formData.fatherDetails.phone} onChange={(e) => handleChange('fatherDetails', 'phone', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
-                        </div>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Guardian Details</h2>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800 pt-4 border-t border-slate-100">Mother's Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">Father's Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
-                          <input type="text" value={formData.motherDetails.firstName} onChange={(e) => handleChange('motherDetails', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                          <input type="text" value={formData.fatherDetails.firstName} onChange={(e) => handleChange('fatherDetails', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                          <input type="text" value={formData.motherDetails.lastName} onChange={(e) => handleChange('motherDetails', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                          <input type="text" value={formData.fatherDetails.lastName} onChange={(e) => handleChange('fatherDetails', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Mobile No.</label>
-                          <input type="text" value={formData.motherDetails.phone} onChange={(e) => handleChange('motherDetails', 'phone', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile No.</label>
+                          <input type="text" maxLength={10} value={formData.fatherDetails.phone} onChange={(e) => handleChange('fatherDetails', 'phone', e.target.value.replace(/\D/g, '').slice(0, 10))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Email ID</label>
+                          <input type="email" value={formData.fatherDetails.email} onChange={(e) => handleChange('fatherDetails', 'email', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                       </div>
                     </div>
@@ -503,42 +558,45 @@ export default function EditStudentPage() {
 
                   {/* STEP 4: Photo & Signature */}
                   {currentStep === 4 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Photo & Signature</h2>
-                      </div>
-                      
-                      <div className="bg-blue-50 text-blue-800 text-xs p-4 rounded-lg flex items-start gap-3 mb-6">
-                        <span className="font-semibold text-blue-600">Note:</span>
-                        <span>Only JPG, JPEG, PNG files are allowed up to 150 KB for Photo and Signature. (Testing phase: You may leave this blank or input a mock image URL).</span>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Photo & Signature Upload</h2>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="p-6 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center gap-4">
-                          <div className="w-32 h-32 bg-slate-200 rounded-lg overflow-hidden border border-slate-300 flex items-center justify-center text-slate-400">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                        {/* Student Photo Upload */}
+                        <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center gap-4 text-center">
+                          <div className="w-32 h-32 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-xs relative group">
                             {formData.photoUrl ? (
                               <img src={formData.photoUrl} alt="Student" className="w-full h-full object-cover" />
                             ) : (
-                              <User className="w-10 h-10 opacity-50" />
+                              <User className="w-9 h-9 opacity-40 text-slate-500" />
                             )}
                           </div>
-                          <div className="w-full">
-                            <label className="block text-xs font-medium text-slate-700 mb-1 text-center">Photo URL (Mock)</label>
-                            <input type="text" placeholder="https://example.com/photo.jpg" value={formData.photoUrl} onChange={(e) => handleChange('root', 'photoUrl', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs focus:border-amber-500 focus:outline-none" />
+                          <div className="w-full space-y-2">
+                            <label className="block text-xs font-semibold text-slate-800">Upload Student Photo</label>
+                            <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
+                              <span>Choose Image File</span>
+                              <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                            </label>
                           </div>
                         </div>
 
-                        <div className="p-6 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center gap-4">
-                          <div className="w-48 h-20 bg-slate-200 rounded-lg overflow-hidden border border-slate-300 flex items-center justify-center text-slate-400">
+                        {/* Student Signature Upload */}
+                        <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center gap-4 text-center">
+                          <div className="w-48 h-28 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-xs relative group">
                             {formData.signatureUrl ? (
-                              <img src={formData.signatureUrl} alt="Signature" className="w-full h-full object-contain" />
+                              <img src={formData.signatureUrl} alt="Signature" className="w-full h-full object-contain p-2" />
                             ) : (
-                              <span className="text-xs font-medium">Signature Area</span>
+                              <FileText className="w-8 h-8 opacity-40 text-slate-500" />
                             )}
                           </div>
-                          <div className="w-full">
-                            <label className="block text-xs font-medium text-slate-700 mb-1 text-center">Signature URL (Mock)</label>
-                            <input type="text" placeholder="https://example.com/sig.png" value={formData.signatureUrl} onChange={(e) => handleChange('root', 'signatureUrl', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs focus:border-amber-500 focus:outline-none" />
+                          <div className="w-full space-y-2">
+                            <label className="block text-xs font-semibold text-slate-800">Upload Student Signature</label>
+                            <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
+                              <span>Choose Signature File</span>
+                              <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
+                            </label>
                           </div>
                         </div>
                       </div>
@@ -546,12 +604,12 @@ export default function EditStudentPage() {
                   )}
 
                   {/* Form Actions Footer */}
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-6">
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-5">
                     <button
                       type="button"
                       disabled={currentStep === 1 || submitting}
                       onClick={handlePrev}
-                      className="border border-slate-300 text-slate-600 rounded-lg px-5 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-30 flex items-center gap-2"
+                      className="border border-slate-300 text-slate-700 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs font-semibold hover:bg-slate-50 disabled:opacity-30 flex items-center gap-2 cursor-pointer"
                     >
                       <ArrowLeft className="h-3.5 w-3.5" /> Prev
                     </button>
@@ -560,7 +618,7 @@ export default function EditStudentPage() {
                       <button
                         type="button"
                         onClick={handleNext}
-                        className="bg-slate-900 text-white rounded-lg px-5 py-2 text-xs font-medium hover:bg-slate-800 flex items-center gap-2"
+                        className="bg-slate-900 text-white rounded-xl px-5 sm:px-6 py-2 sm:py-2.5 text-xs font-semibold hover:bg-slate-800 flex items-center gap-2 shadow-xs cursor-pointer"
                       >
                         Next <ArrowRight className="h-3.5 w-3.5" />
                       </button>
@@ -568,9 +626,9 @@ export default function EditStudentPage() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="bg-emerald-600 text-white rounded-lg px-6 py-2 text-xs font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                        className="bg-amber-600 text-white rounded-xl px-5 sm:px-6 py-2 sm:py-2.5 text-xs font-bold hover:bg-amber-700 disabled:opacity-50 flex items-center gap-2 shadow-xs cursor-pointer"
                       >
-                        {submitting ? 'Saving...' : 'Complete Enrollment'} <CheckCircle2 className="h-4 w-4" />
+                        {submitting ? 'Saving Changes...' : 'Update Student Profile'} <CheckCircle2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
