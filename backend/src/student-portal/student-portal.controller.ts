@@ -21,6 +21,13 @@ export class StudentPortalController {
     return this.studentPortalService.getTimetableSelf(tenantId, userId);
   }
 
+  @Get('attendance/self')
+  async getAttendanceSelf(@Request() req) {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.userId || req.user.id;
+    return this.studentPortalService.getAttendanceSelf(tenantId, userId);
+  }
+
   @Get('leaves')
   async getMyLeaveRequests(@Request() req) {
     const tenantId = req.user.tenant_id;

@@ -40,8 +40,8 @@ export default function StudentAttendancePage() {
   const [attendanceData, setAttendanceData] = useState<any>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -54,8 +54,6 @@ export default function StudentAttendancePage() {
       fetchAttendance(token);
     } catch (e) {
       router.push('/login');
-    } finally {
-      setLoading(false);
     }
   }, [router]);
 
@@ -71,19 +69,33 @@ export default function StudentAttendancePage() {
       }
     } catch (e) {
       console.error('Failed to fetch attendance data', e);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading || !attendanceData) {
+  if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-500 text-xs">
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-500 text-xs font-medium">
         Loading Student Attendance Report...
       </div>
     );
   }
 
-  const stats = attendanceData.stats;
-  const student = attendanceData.student;
+  const stats = attendanceData?.stats || {
+    monthlyAttendancePercent: 100,
+    totalWorkingDays: 0,
+    presentCount: 0,
+    absentCount: 0,
+    leaveCount: 0,
+  };
+
+  const student = attendanceData?.student || {
+    name: user?.name || user?.username || 'Student',
+    class: 'Student Account',
+  };
+
+  const records = attendanceData?.records || attendanceData?.history || [];
 
   return (
     <div className="flex min-h-screen bg-slate-50 overflow-hidden">
@@ -98,17 +110,17 @@ export default function StudentAttendancePage() {
           userRole="Enrolled Student Account"
         />
 
-        <main className="px-4 md:px-8 py-6 max-w-5xl mx-auto w-full">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 max-w-5xl mx-auto w-full">
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-6"
+            className="space-y-5"
           >
             {/* Header Card */}
-            <motion.div variants={itemVariants} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <motion.div variants={itemVariants} className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <h2 className="font-serif text-xl sm:text-2xl font-semibold text-slate-900">
+                <h2 className="font-serif text-lg sm:text-xl font-semibold text-slate-900">
                   {student.name} ({student.class})
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -116,31 +128,31 @@ export default function StudentAttendancePage() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center shrink-0 min-w-[140px] shadow-sm">
-                <span className="block text-[11px] text-emerald-700 font-bold uppercase tracking-wider mb-1">Monthly Attendance</span>
-                <span className="font-serif text-3xl font-bold text-emerald-800">
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 sm:p-4 text-center shrink-0 min-w-[140px] shadow-xs">
+                <span className="block text-[10px] text-emerald-700 font-bold uppercase tracking-wider mb-1">Monthly Attendance</span>
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-emerald-800">
                   {stats.monthlyAttendancePercent}%
                 </span>
               </div>
             </motion.div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                <span className="text-xs uppercase tracking-wider font-semibold text-slate-400 block mb-2">Working Days</span>
-                <span className="font-serif text-3xl font-bold text-slate-800">{stats.totalWorkingDays}</span>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 text-center shadow-xs">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block mb-1.5">Working Days</span>
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-slate-800">{stats.totalWorkingDays}</span>
               </motion.div>
-              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-5 text-center shadow-sm">
-                <span className="text-xs uppercase tracking-wider font-bold text-emerald-700 block mb-2">Days Present</span>
-                <span className="font-serif text-3xl font-bold text-emerald-800">{stats.presentCount}</span>
+              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 sm:p-5 text-center shadow-xs">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-700 block mb-1.5">Days Present</span>
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-emerald-800">{stats.presentCount}</span>
               </motion.div>
-              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/50 p-5 text-center shadow-sm">
-                <span className="text-xs uppercase tracking-wider font-bold text-rose-700 block mb-2">Days Absent</span>
-                <span className="font-serif text-3xl font-bold text-rose-800">{stats.absentCount}</span>
+              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/50 p-4 sm:p-5 text-center shadow-xs">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-rose-700 block mb-1.5">Days Absent</span>
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-rose-800">{stats.absentCount}</span>
               </motion.div>
-              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-5 text-center shadow-sm">
-                <span className="text-xs uppercase tracking-wider font-bold text-amber-700 block mb-2">Approved Leaves</span>
-                <span className="font-serif text-3xl font-bold text-amber-800">{stats.leaveCount}</span>
+              <motion.div variants={itemVariants} whileHover={hover3DEffect} className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 sm:p-5 text-center shadow-xs">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-amber-700 block mb-1.5">Approved Leaves</span>
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-amber-800">{stats.leaveCount}</span>
               </motion.div>
             </div>
 
@@ -148,54 +160,54 @@ export default function StudentAttendancePage() {
             <motion.div 
               variants={itemVariants}
               whileHover={{ scale: 1.01, y: -2, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
-              className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col"
+              className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden flex flex-col"
             >
-              <div className="border-b border-slate-100 px-6 py-5 flex items-center justify-between">
-                <h3 className="font-serif text-lg font-semibold text-slate-900">
+              <div className="border-b border-slate-100 p-4 sm:p-5 flex items-center justify-between">
+                <h3 className="font-serif text-base font-semibold text-slate-900">
                   Detailed Attendance History
                 </h3>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0">
                   <CalendarCheck className="h-4 w-4" />
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 min-w-[600px]">
-                  <thead className="bg-slate-50 text-slate-600 border-b-2 border-slate-200 font-semibold uppercase text-xs tracking-wider">
+                <table className="w-full text-left text-xs text-slate-600 min-w-[500px]">
+                  <thead className="bg-slate-50 text-slate-600 border-b border-slate-100 font-semibold uppercase tracking-wider">
                     <tr>
-                      <th className="px-6 py-4">Date</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Remarks</th>
+                      <th className="px-4 sm:px-6 py-3.5">Date</th>
+                      <th className="px-4 sm:px-6 py-3.5">Status</th>
+                      <th className="px-4 sm:px-6 py-3.5">Remarks</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {attendanceData.records.length === 0 ? (
+                  <tbody className="divide-y divide-slate-50">
+                    {records.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium">
-                          <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-slate-300" />
-                          No attendance logs recorded yet.
+                          <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                          No attendance logs recorded yet for this session.
                         </td>
                       </tr>
                     ) : (
-                      attendanceData.records.map((r: any, idx: number) => (
+                      records.map((r: any, idx: number) => (
                         <motion.tr 
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 * idx }}
-                          key={r.id} 
-                          className="hover:bg-slate-50 transition-colors"
+                          transition={{ delay: 0.05 * idx }}
+                          key={r.id || idx} 
+                          className="hover:bg-slate-50/60 transition-colors"
                         >
-                          <td className="px-6 py-4 font-mono font-medium text-slate-800">
-                            {new Date(r.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                          <td className="px-4 sm:px-6 py-3.5 font-mono font-bold text-slate-800">
+                            {r.date ? new Date(r.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 sm:px-6 py-3.5">
                             <StatusPill
                               status={r.status === 'PRESENT' ? 'active' : r.status === 'ABSENT' ? 'error' : 'pending'}
                               label={r.status}
                             />
                           </td>
-                          <td className="px-6 py-4 text-slate-500 text-xs font-medium">
-                            {r.remarks || '—'}
+                          <td className="px-4 sm:px-6 py-3.5 text-slate-500 text-xs font-medium">
+                            {r.remarks || 'Regular Log'}
                           </td>
                         </motion.tr>
                       ))

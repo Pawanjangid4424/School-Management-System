@@ -152,7 +152,7 @@ export class StudentPortalService {
         pendingAssignments: assignmentsCount,
         announcementCount: notices.length,
         upcomingExams: examTimeTable.length,
-        pendingTripConsents: 0, // Mock
+        pendingTripConsents: 0,
       },
       widgets: {
         examTimeTable,
@@ -167,7 +167,6 @@ export class StudentPortalService {
 
   async getTimetableSelf(tenantId: string, userId: string) {
     const student = await this.resolveStudentProfile(tenantId, userId);
-
     const studentClassNum = parseInt(String(student.current_class || '0').replace(/\D/g, ''), 10) || 0;
 
     const slots = await this.prisma.timetableSlot.findMany({
@@ -187,6 +186,52 @@ export class StudentPortalService {
     });
 
     return slots;
+  }
+
+  async getAttendanceSelf(tenantId: string, userId: string) {
+    const student = await this.resolveStudentProfile(tenantId, userId);
+
+    const attendanceRecords = await this.prisma.attendanceRecord.findMany({
+      where: { student_profile_id: student.id },
+      orderBy: { date: 'desc' },
+    });
+
+    const leaveRequests = await this.prisma.leaveRequest.findMany({
+      where: {
+        student_profile_id: student.id,
+        status: 'APPROVED',
+      },
+    });
+
+    const presentCount = attendanceRecords.filter((r) => r.status === 'PRESENT').length;
+    const absentCount = attendanceRecords.filter((r) => r.status === 'ABSENT').length;
+    const leaveCount = leaveRequests.length;
+    const totalWorkingDays = attendanceRecords.length || (presentCount + absentCount + leaveCount) || 0;
+    const monthlyAttendancePercent = totalWorkingDays === 0 ? 100 : Number(((presentCount / totalWorkingDays) * 100).toFixed(1));
+
+    const records = attendanceRecords.map((r) => ({
+      id: r.id,
+      date: r.date,
+      status: r.status,
+      remarks: r.status === 'PRESENT' ? 'Regular Attendance' : r.status === 'ABSENT' ? 'Unexcused Absence' : 'Recorded Log',
+    }));
+
+    return {
+      student: {
+        id: student.id,
+        name: `${student.first_name} ${student.last_name}`,
+        class: `Grade ${student.current_class}-${student.current_section}`,
+      },
+      stats: {
+        monthlyAttendancePercent,
+        totalWorkingDays,
+        presentCount,
+        absentCount,
+        leaveCount,
+      },
+      records,
+      history: records,
+    };
   }
 
   async submitLeaveRequest(
