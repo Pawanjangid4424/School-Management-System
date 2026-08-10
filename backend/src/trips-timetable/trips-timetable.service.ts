@@ -65,32 +65,43 @@ export class TripsTimetableService {
   async createTrip(tenantId: string, userId: string, dto: CreateTripDto) {
     const staffId = await this.getStaffProfileId(userId);
     
+    let parsedDate: Date;
+    try {
+      parsedDate = new Date(dto.tripDate);
+      if (isNaN(parsedDate.getTime())) {
+        parsedDate = new Date();
+      }
+    } catch {
+      parsedDate = new Date();
+    }
+
     // 1. Create Trip record
     const trip = await this.prisma.trip.create({
       data: {
         tenant_id: tenantId,
-        class_number: dto.classNumber,
-        section: dto.section.toUpperCase(),
+        class_number: Number(dto.classNumber),
+        section: (dto.section || 'A').toUpperCase(),
         created_by_staff_id: staffId,
-        destination: dto.destination.trim(),
-        trip_date: new Date(dto.tripDate),
-        departure_time: dto.departureTime,
+        destination: (dto.destination || 'School Field Trip').trim(),
+        trip_date: parsedDate,
+        departure_time: dto.departureTime || '8:00 AM',
         arrival_time: dto.arrivalTime || null,
-        return_time: dto.returnTime,
+        return_time: dto.returnTime || '4:00 PM',
         cost: dto.cost ? Number(dto.cost) : null,
         cost_breakdown: dto.costBreakdown ? (dto.costBreakdown as any) : null,
         what_to_bring: dto.whatToBring ? (dto.whatToBring as any) : null,
         rules: dto.rules ? (dto.rules as any) : null,
-        description: dto.description.trim(),
+        description: dto.description ? dto.description.trim() : (dto.destination || 'School Field Trip Proposal'),
         emergency_instructions: dto.emergencyInstructions ? dto.emergencyInstructions.trim() : null,
-        emergency_contact_phone1: dto.emergencyContactPhone1 || null,
-        emergency_contact_phone2: dto.emergencyContactPhone2 || null,
+        emergency_contact_phone1: dto.emergencyContactPhone1 || (dto as any).phone1 || null,
+        emergency_contact_phone2: dto.emergencyContactPhone2 || (dto as any).phone2 || null,
         status: 'PENDING_APPROVAL',
         is_locked: false,
       },
     });
 
     return {
+      id: trip.id,
       trip,
       permissionsCreated: 0,
     };

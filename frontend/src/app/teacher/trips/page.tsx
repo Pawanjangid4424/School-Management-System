@@ -212,7 +212,8 @@ export default function TeacherTripsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to save trip');
 
-      setCreatedTripId(data.id);
+      const tripId = data.id || data.trip?.id || editingTripId;
+      setCreatedTripId(tripId);
       
       // Fetch students for selection step
       const studsRes = await fetch(
