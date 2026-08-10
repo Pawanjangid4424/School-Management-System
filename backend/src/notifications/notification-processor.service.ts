@@ -75,7 +75,7 @@ export class NotificationProcessorService {
             if (perm) {
               const mobileNo = perm.student_profile?.mobile_no;
               const dest = perm.trip?.destination || 'Field Trip';
-              const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
+              const baseUrl = process.env.FRONTEND_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-iota-flax.vercel.app';
               const smsText = `Action Required: Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/consent/${perm.id}`;
               
               await this.resendDispatch.sendTransactionalSMS({
@@ -127,7 +127,7 @@ export class NotificationProcessorService {
   async formatEmailContent(item: any): Promise<{ subject: string; htmlContent: string; schoolName?: string }> {
     const type = item.type;
     const entityId = item.related_entity_id;
-    const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
+    const baseUrl = process.env.FRONTEND_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-iota-flax.vercel.app';
 
     if (type === 'TRIP_CONSENT_REQUIRED') {
       const perm = await this.prisma.tripPermission.findUnique({
