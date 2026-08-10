@@ -7,12 +7,8 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      router.push('/admin/dashboard');
-    } else {
-      router.push('/login');
-    }
+    // Root Vercel URL always directs to the official School ERP Login Portal
+    router.push('/login');
   }, [router]);
 
   return (
