@@ -71,6 +71,10 @@ export class BrevoEmailDispatchService {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.code === 'permission_denied' || (data.message && data.message.includes('not yet activated'))) {
+          this.logger.error(`BREVO ACCOUNT ACTIVATION REQUIRED: ${data.message}`);
+          throw new Error(`Brevo Account Activation Needed: Log into https://app.brevo.com and click 'Activate Transactional Emails'. (${data.message})`);
+        }
         throw new Error(data.message || `Brevo API HTTP Error ${response.status}`);
       }
 
