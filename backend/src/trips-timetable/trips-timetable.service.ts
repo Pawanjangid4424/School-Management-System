@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeacherScopingService } from '../teacher-portal/teacher-scoping.service';
+import { NotificationProcessorService } from '../notifications/notification-processor.service';
 
 export interface CostItemDto {
   label: string;
@@ -16,10 +17,12 @@ export interface CreateTripDto {
   arrivalTime?: string;
   returnTime: string;
   cost?: number;
+  phone1?: string;
+  phone2?: string;
   costBreakdown?: CostItemDto[];
   whatToBring?: string[];
   rules?: string[];
-  description: string;
+  description?: string;
   emergencyInstructions?: string;
   emergencyContactPhone1?: string;
   emergencyContactPhone2?: string;
@@ -44,6 +47,7 @@ export class TripsTimetableService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly scopingService: TeacherScopingService,
+    private readonly notificationProcessor: NotificationProcessorService,
   ) {}
 
   /**
@@ -93,8 +97,8 @@ export class TripsTimetableService {
         rules: dto.rules ? (dto.rules as any) : null,
         description: dto.description ? dto.description.trim() : (dto.destination || 'School Field Trip Proposal'),
         emergency_instructions: dto.emergencyInstructions ? dto.emergencyInstructions.trim() : null,
-        emergency_contact_phone1: dto.emergencyContactPhone1 || (dto as any).phone1 || null,
-        emergency_contact_phone2: dto.emergencyContactPhone2 || (dto as any).phone2 || null,
+        emergency_contact_phone1: dto.emergencyContactPhone1 || dto.phone1 || null,
+        emergency_contact_phone2: dto.emergencyContactPhone2 || dto.phone2 || null,
         status: 'PENDING_APPROVAL',
         is_locked: false,
       },
@@ -121,10 +125,13 @@ export class TripsTimetableService {
     }
 
     const dataToUpdate: any = {};
-    if (dto.classNumber !== undefined) dataToUpdate.class_number = dto.classNumber;
+    if (dto.classNumber !== undefined) dataToUpdate.class_number = Number(dto.classNumber);
     if (dto.section !== undefined) dataToUpdate.section = dto.section.toUpperCase();
     if (dto.destination !== undefined) dataToUpdate.destination = dto.destination.trim();
-    if (dto.tripDate !== undefined) dataToUpdate.trip_date = new Date(dto.tripDate);
+    if (dto.tripDate !== undefined) {
+      const d = new Date(dto.tripDate);
+      if (!isNaN(d.getTime())) dataToUpdate.trip_date = d;
+    }
     if (dto.departureTime !== undefined) dataToUpdate.departure_time = dto.departureTime;
     if (dto.arrivalTime !== undefined) dataToUpdate.arrival_time = dto.arrivalTime;
     if (dto.returnTime !== undefined) dataToUpdate.return_time = dto.returnTime;
@@ -132,10 +139,14 @@ export class TripsTimetableService {
     if (dto.costBreakdown !== undefined) dataToUpdate.cost_breakdown = dto.costBreakdown;
     if (dto.whatToBring !== undefined) dataToUpdate.what_to_bring = dto.whatToBring;
     if (dto.rules !== undefined) dataToUpdate.rules = dto.rules;
-    if (dto.description !== undefined) dataToUpdate.description = dto.description.trim();
+    if (dto.description !== undefined && dto.description) dataToUpdate.description = dto.description.trim();
     if (dto.emergencyInstructions !== undefined) dataToUpdate.emergency_instructions = dto.emergencyInstructions;
-    if (dto.emergencyContactPhone1 !== undefined) dataToUpdate.emergency_contact_phone1 = dto.emergencyContactPhone1;
-    if (dto.emergencyContactPhone2 !== undefined) dataToUpdate.emergency_contact_phone2 = dto.emergencyContactPhone2;
+    if (dto.emergencyContactPhone1 !== undefined || dto.phone1 !== undefined) {
+      dataToUpdate.emergency_contact_phone1 = dto.emergencyContactPhone1 || dto.phone1 || null;
+    }
+    if (dto.emergencyContactPhone2 !== undefined || dto.phone2 !== undefined) {
+      dataToUpdate.emergency_contact_phone2 = dto.emergencyContactPhone2 || dto.phone2 || null;
+    }
 
     const updatedTrip = await this.prisma.trip.update({
       where: { id: tripId },
@@ -162,35 +173,59 @@ export class TripsTimetableService {
         where: { trip_id: trip.id, student_profile_id: studentId },
       });
 
+      let perm = existing;
       if (!existing) {
-        const perm = await this.prisma.tripPermission.create({
+        perm = await this.prisma.tripPermission.create({
           data: {
             trip_id: trip.id,
             student_profile_id: studentId,
             permission_status: 'PENDING',
           },
         });
-        permissions.push(perm);
-
-        // Queue Notification
-        const student = await this.prisma.studentProfile.findUnique({
-          where: { id: studentId },
-          include: { user: true },
-        });
-
-        if (student && student.user) {
-          await this.prisma.notificationQueueItem.create({
-            data: {
-              user_id: student.user.id,
-              recipient_email: student.user.current_email,
-              recipient_name: `${student.first_name} ${student.last_name}`,
-              type: 'TRIP_CONSENT_REQUIRED',
-              related_entity_id: perm.id,
-              status: 'PENDING_DISPATCH',
-            },
-          });
-        }
       }
+      permissions.push(perm);
+
+      // Queue Notification with real parent email/phone
+      const student = await this.prisma.studentProfile.findUnique({
+        where: { id: studentId },
+        include: {
+          user: true,
+          guardian_links: {
+            include: {
+              guardian_profile: true,
+            },
+          },
+        },
+      });
+
+      let recipientEmail = student?.user?.current_email;
+      let recipientName = student ? `${student.first_name} ${student.last_name}` : 'Parent / Guardian';
+
+      if (student?.guardian_links && student.guardian_links.length > 0) {
+        const primary = student.guardian_links[0].guardian_profile;
+        if (primary?.email) recipientEmail = primary.email;
+        if (primary?.full_name) recipientName = primary.full_name;
+      }
+
+      if (recipientEmail && perm) {
+        await this.prisma.notificationQueueItem.create({
+          data: {
+            user_id: student?.user_id || null,
+            recipient_email: recipientEmail,
+            recipient_name: recipientName,
+            type: 'TRIP_CONSENT_REQUIRED',
+            related_entity_id: perm.id,
+            status: 'PENDING_DISPATCH',
+          },
+        });
+      }
+    }
+
+    // Trigger instant email dispatch worker!
+    try {
+      await this.notificationProcessor.processPendingNotifications();
+    } catch (e) {
+      console.error('Failed to trigger immediate email dispatch', e);
     }
 
     return { dispatchedCount: permissions.length };
@@ -252,18 +287,49 @@ export class TripsTimetableService {
 
     const notificationsCreated = [];
 
-    // If APPROVED, enqueue NotificationQueueItem rows
+    // If APPROVED, enqueue NotificationQueueItem rows & trigger instant mail dispatch!
     if (isApproved) {
       for (const perm of trip.permissions) {
-        const notif = await this.prisma.notificationQueueItem.create({
-          data: {
-            user_id: perm.guardian_user_id || null,
-            type: 'TRIP_CONSENT_REQUIRED',
-            related_entity_id: perm.id,
-            status: 'PENDING_DISPATCH',
+        const student = await this.prisma.studentProfile.findUnique({
+          where: { id: perm.student_profile_id },
+          include: {
+            user: true,
+            guardian_links: {
+              include: {
+                guardian_profile: true,
+              },
+            },
           },
         });
-        notificationsCreated.push(notif);
+
+        let recipientEmail = student?.user?.current_email;
+        let recipientName = student ? `${student.first_name} ${student.last_name}` : 'Parent / Guardian';
+
+        if (student?.guardian_links && student.guardian_links.length > 0) {
+          const primary = student.guardian_links[0].guardian_profile;
+          if (primary?.email) recipientEmail = primary.email;
+          if (primary?.full_name) recipientName = primary.full_name;
+        }
+
+        if (recipientEmail) {
+          const notif = await this.prisma.notificationQueueItem.create({
+            data: {
+              user_id: perm.guardian_user_id || student?.user_id || null,
+              recipient_email: recipientEmail,
+              recipient_name: recipientName,
+              type: 'TRIP_CONSENT_REQUIRED',
+              related_entity_id: perm.id,
+              status: 'PENDING_DISPATCH',
+            },
+          });
+          notificationsCreated.push(notif);
+        }
+      }
+
+      try {
+        await this.notificationProcessor.processPendingNotifications();
+      } catch (e) {
+        console.error('Failed to trigger immediate email dispatch on review', e);
       }
     }
 
