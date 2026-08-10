@@ -102,3 +102,21 @@ export class TripsTimetableController {
     return this.service.createTimetableSlot(tenantId, body);
   }
 }
+
+@Controller('public/trips/permission')
+export class PublicTripsPermissionController {
+  constructor(private readonly service: TripsTimetableService) {}
+
+  @Get(':permissionId')
+  async getPublicPermission(@Param('permissionId') permissionId: string) {
+    return this.service.getPublicPermission(permissionId);
+  }
+
+  @Post(':permissionId/respond')
+  async respondPublic(
+    @Param('permissionId') permissionId: string,
+    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string },
+  ) {
+    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId);
+  }
+}

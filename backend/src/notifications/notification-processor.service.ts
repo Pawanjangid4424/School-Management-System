@@ -75,7 +75,7 @@ export class NotificationProcessorService {
               const mobileNo = perm.student_profile?.mobile_no;
               const dest = perm.trip?.destination || 'Field Trip';
               const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-pink-tau.vercel.app';
-              const smsText = `St. Jude School: Action Required - Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/student/trips`;
+              const smsText = `Action Required: Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/consent/${perm.id}`;
               
               await this.brevoDispatch.sendTransactionalSMS({
                 toPhone: mobileNo || '+91887533348',
@@ -143,7 +143,7 @@ export class NotificationProcessorService {
       const returnTime = perm?.trip?.return_time || '4:00 PM';
       const costStr = perm?.trip?.cost ? `₹${perm.trip.cost}` : 'Free / Included';
 
-      const consentUrl = `${baseUrl}/student/trips`;
+      const consentUrl = `${baseUrl}/consent/${perm?.id || entityId}`;
 
       return {
         subject: `[ACTION REQUIRED] Official Field Trip Parent Consent Form for ${studentName}`,

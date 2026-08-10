@@ -384,6 +384,34 @@ export class TripsTimetableService {
     };
   }
 
+  async getPublicPermission(permissionId: string) {
+    const perm = await this.prisma.tripPermission.findUnique({
+      where: { id: permissionId },
+      include: {
+        trip: true,
+        student_profile: true,
+      },
+    });
+
+    if (!perm) {
+      throw new NotFoundException('Trip permission document not found');
+    }
+
+    return {
+      permissionId: perm.id,
+      permissionStatus: perm.permission_status,
+      respondedByName: perm.responded_by_name || '',
+      signatureId: perm.signature_id || '',
+      respondedAt: perm.responded_at ? perm.responded_at.toISOString() : null,
+      student: {
+        name: `${perm.student_profile.first_name} ${perm.student_profile.last_name}`,
+        code: perm.student_profile.current_student_code,
+        class: `Grade ${perm.trip.class_number} Section ${perm.trip.section}`,
+      },
+      trip: perm.trip,
+    };
+  }
+
   async respondToTripPermission(
     permissionId: string,
     status: 'GRANTED' | 'DENIED',
