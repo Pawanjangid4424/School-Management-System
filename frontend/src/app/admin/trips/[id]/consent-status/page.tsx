@@ -191,34 +191,52 @@ export default function ConsentStatusRosterPage() {
                     <th className="px-6 py-3">Guardian Name</th>
                     <th className="px-6 py-3">Responded Date</th>
                     <th className="px-6 py-3">Permission Status</th>
+                    <th className="px-6 py-3 text-right">Quick Share</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {data.roster.map((item: any) => (
-                    <tr key={item.permissionId} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-6 py-3.5 font-mono text-slate-500">
-                        #{item.rollNo}
-                      </td>
-                      <td className="px-6 py-3.5 font-medium text-slate-900">
-                        {item.name}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <CodeBadge code={item.studentCode} />
-                      </td>
-                      <td className="px-6 py-3.5 text-slate-600 font-medium">
-                        {item.guardianName}
-                      </td>
-                      <td className="px-6 py-3.5 text-slate-500 font-mono">
-                        {item.respondedAt ? item.respondedAt.split('T')[0] : '—'}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <StatusPill
-                          status={item.permissionStatus === 'GRANTED' ? 'active' : item.permissionStatus === 'DENIED' ? 'error' : 'pending'}
-                          label={item.permissionStatus}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  {data.roster.map((item: any) => {
+                    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-iota-flax.vercel.app';
+                    const shareText = `Marudhar Defence Academy: Action Required - Field Trip Parent Consent for ${item.name} (${trip.destination}). Please review & sign online: ${baseUrl}/consent/${item.permissionId}`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+
+                    return (
+                      <tr key={item.permissionId} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-6 py-3.5 font-mono text-slate-500">
+                          #{item.rollNo}
+                        </td>
+                        <td className="px-6 py-3.5 font-medium text-slate-900">
+                          {item.name}
+                        </td>
+                        <td className="px-6 py-3.5">
+                          <CodeBadge code={item.studentCode} />
+                        </td>
+                        <td className="px-6 py-3.5 text-slate-600 font-medium">
+                          {item.guardianName}
+                        </td>
+                        <td className="px-6 py-3.5 text-slate-500 font-mono">
+                          {item.respondedAt ? item.respondedAt.split('T')[0] : '—'}
+                        </td>
+                        <td className="px-6 py-3.5">
+                          <StatusPill
+                            status={item.permissionStatus === 'GRANTED' ? 'active' : item.permissionStatus === 'DENIED' ? 'error' : 'pending'}
+                            label={item.permissionStatus}
+                          />
+                        </td>
+                        <td className="px-6 py-3.5 text-right">
+                          <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-colors shadow-xs"
+                            title="Share Direct Consent Link on WhatsApp (100% Free)"
+                          >
+                            <span>💬 Send WhatsApp</span>
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
