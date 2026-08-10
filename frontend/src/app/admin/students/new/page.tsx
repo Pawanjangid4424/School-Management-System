@@ -304,7 +304,7 @@ export default function AddStudentPage() {
         <div className="print:hidden">
           <Topbar title="Add New Student" userName="Welcome, Admin" userRole="System Administrator" />
         </div>
-        <main className="px-4 sm:px-6 lg:px-8 py-6 print:p-0 space-y-6 max-w-6xl mx-auto print:max-w-none print:w-full">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 print:p-0 space-y-5 max-w-6xl mx-auto print:max-w-none print:w-full">
 
           <div className="flex items-center gap-2 text-xs text-slate-500 print:hidden">
             <Link href="/admin/students" className="flex items-center gap-1 hover:text-slate-900 transition-colors">
@@ -352,7 +352,7 @@ export default function AddStudentPage() {
                 </div>
               </div>
 
-              {/* Vibrant Banner (Screen) / Clean Header (Print) */}
+              {/* Banner */}
               <div className="rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-4 sm:p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:bg-slate-100 print:text-slate-900 print:p-3 print:border print:border-slate-300">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md text-white print:bg-emerald-600 print:text-white print:h-8 print:w-8 shrink-0">
@@ -378,10 +378,9 @@ export default function AddStudentPage() {
                 </button>
               </div>
 
-              {/* Student Comprehensive Profile Summary (Includes Photo, Class, Parents) */}
+              {/* Student Comprehensive Profile Summary */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-4 print:bg-white print:border-slate-300 print:p-3">
                 <div className="flex flex-col sm:flex-row gap-4 items-start">
-                  {/* Student Photo */}
                   <div className="w-24 h-28 bg-white border border-slate-300 rounded-lg overflow-hidden flex items-center justify-center text-slate-400 shrink-0 shadow-sm">
                     {createdResult.rawFormData?.photoUrl ? (
                       <img src={createdResult.rawFormData.photoUrl} alt="Student Photo" className="w-full h-full object-cover" />
@@ -393,8 +392,7 @@ export default function AddStudentPage() {
                     )}
                   </div>
 
-                  {/* Student Details Grid */}
-                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2.5">
                     <div>
                       <span className="block text-[10px] text-slate-400 font-medium">Student Full Name</span>
                       <strong className="text-slate-900 text-xs font-bold">
@@ -464,8 +462,7 @@ export default function AddStudentPage() {
                   Student Portal Login Credentials
                 </h3>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  {/* Username */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 print:bg-white print:border-slate-300 space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Login Username</span>
                     <div className="font-mono text-sm font-bold text-slate-900">
@@ -473,7 +470,6 @@ export default function AddStudentPage() {
                     </div>
                   </div>
 
-                  {/* Password */}
                   <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/40 print:bg-white print:border-slate-300 space-y-1">
                     <span className="text-[10px] font-semibold text-amber-900 print:text-slate-500 uppercase tracking-wider block">Initial Temporary Password</span>
                     <div className="font-mono text-sm font-bold text-slate-900">
@@ -493,8 +489,7 @@ export default function AddStudentPage() {
                     </div>
                   </div>
 
-                  {/* Email */}
-                  <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 print:bg-white print:border-slate-300 space-y-1 col-span-2">
+                  <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 print:bg-white print:border-slate-300 space-y-1 sm:col-span-2">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Institutional Student Email</span>
                     <div className="font-mono text-xs font-bold text-slate-900">
                       {createdResult.email || `${createdResult.username}@school.com`}
@@ -503,22 +498,12 @@ export default function AddStudentPage() {
                 </div>
               </div>
 
-              {/* Security & Password Self-Service Note */}
+              {/* Security Note */}
               <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 text-[11px] text-blue-900 flex items-start gap-2.5 print:bg-white print:border-slate-300 print:text-slate-600 print:p-2">
                 <Lock className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5 print:text-slate-700" />
                 <p className="leading-snug">
                   Parents/Students can log in to the <strong>Student Portal</strong> using either their <strong>System Username</strong> or <strong>Institutional Email</strong> with the initial temporary password. On first login, please reset password via <strong>Profile Settings</strong>.
                 </p>
-              </div>
-
-              {/* Official Signatures for Printed Slip */}
-              <div className="hidden print:flex justify-between items-end pt-8 text-xs text-slate-800">
-                <div className="text-center">
-                  <div className="border-t border-slate-400 w-44 pt-1 font-bold">Parent / Guardian Signature</div>
-                </div>
-                <div className="text-center">
-                  <div className="border-t border-slate-400 w-44 pt-1 font-bold">Authorized Admin Stamp</div>
-                </div>
               </div>
 
               {/* Footer Action Buttons */}
@@ -540,10 +525,35 @@ export default function AddStudentPage() {
               </div>
             </div>
           ) : (
-            <div className="flex gap-6">
-              {/* Sidebar Navigation for Form Steps */}
-              <div className="w-64 shrink-0">
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-24">
+            <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
+              
+              {/* Step Navigation Bar for Mobile & Tablet (< lg) */}
+              <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
+                {[
+                  { step: 1, label: 'Personal', icon: User },
+                  { step: 2, label: 'Address', icon: MapPin },
+                  { step: 3, label: 'Guardian', icon: Users },
+                  { step: 4, label: 'Photo', icon: FileText }
+                ].map((item) => (
+                  <button
+                    key={item.step}
+                    type="button"
+                    onClick={() => setCurrentStep(item.step)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      currentStep === item.step
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <item.icon className="h-3.5 w-3.5 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Sidebar Navigation for Form Steps (Desktop >= lg) */}
+              <div className="hidden lg:block lg:w-64 shrink-0">
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden sticky top-24">
                   <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                     <h3 className="font-semibold text-sm text-slate-800">Enrollment Steps</h3>
                   </div>
@@ -558,30 +568,30 @@ export default function AddStudentPage() {
                         key={item.step}
                         type="button"
                         onClick={() => setCurrentStep(item.step)}
-                        className={`flex items-center gap-3 px-5 py-4 text-xs font-medium transition-colors border-l-2 ${
+                        className={`flex items-center gap-3 px-5 py-4 text-xs font-medium transition-colors border-l-2 cursor-pointer ${
                           currentStep === item.step
-                            ? 'border-amber-500 bg-amber-50/30 text-amber-700'
+                            ? 'border-amber-500 bg-amber-50/30 text-amber-700 font-semibold'
                             : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
-                        <item.icon className={`h-4 w-4 ${currentStep === item.step ? 'text-amber-600' : 'text-slate-400'}`} />
-                        {item.label}
+                        <item.icon className={`h-4 w-4 shrink-0 ${currentStep === item.step ? 'text-amber-600' : 'text-slate-400'}`} />
+                        <span>{item.label}</span>
                       </button>
                     ))}
                   </nav>
                 </div>
               </div>
 
-              {/* Main Form Area */}
-              <div className="flex-1 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {error && <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">{error}</div>}
+              {/* Main Form Area - 100% Mobile & Tablet Responsive */}
+              <div className="flex-1 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 lg:p-8 shadow-xs min-w-0">
+                <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                  {error && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">{error}</div>}
 
                   {/* STEP 1: Personal Details */}
                   {currentStep === 1 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Student Personal Details</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Student Personal Details</h2>
                       </div>
 
                       {sectionCapacityMsg && (
@@ -590,30 +600,30 @@ export default function AddStudentPage() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name *</label>
-                          <input type="text" required placeholder="e.g. Rahul" value={formData.firstName} onChange={(e) => handleChange('root', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name *</label>
+                          <input type="text" required placeholder="e.g. Rahul" value={formData.firstName} onChange={(e) => handleChange('root', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Middle Name</label>
-                          <input type="text" placeholder="e.g. Kumar" value={formData.middleName} onChange={(e) => handleChange('root', 'middleName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Middle Name</label>
+                          <input type="text" placeholder="e.g. Kumar" value={formData.middleName} onChange={(e) => handleChange('root', 'middleName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name *</label>
-                          <input type="text" required placeholder="e.g. Sharma" value={formData.lastName} onChange={(e) => handleChange('root', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name *</label>
+                          <input type="text" required placeholder="e.g. Sharma" value={formData.lastName} onChange={(e) => handleChange('root', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Class *</label>
-                          <select required value={formData.classNumber} onChange={(e) => handleClassChange(Number(e.target.value))} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Class *</label>
+                          <select required value={formData.classNumber} onChange={(e) => handleClassChange(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select Class...</option>
                             {Array.from({ length: 12 }, (_, i) => i + 1).map(c => <option key={c} value={c}>Grade {c}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Section *</label>
-                          <select required value={formData.section} onChange={(e) => handleSectionChange(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Section *</label>
+                          <select required value={formData.section} onChange={(e) => handleSectionChange(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select Section...</option>
                             {['A','B','C'].map(s => {
                               const info = sectionCapacities ? sectionCapacities[s] : null;
@@ -627,7 +637,7 @@ export default function AddStudentPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
                             <span>Stream</span>
                             {Number(formData.classNumber) < 11 && (
                               <span className="text-[10px] text-slate-400 font-normal">(Grade 11 & 12 only)</span>
@@ -637,9 +647,9 @@ export default function AddStudentPage() {
                             disabled={Number(formData.classNumber) < 11}
                             value={formData.stream}
                             onChange={(e) => handleChange('root', 'stream', e.target.value)}
-                            className={`w-full rounded-lg border px-3 py-2 text-xs focus:outline-none ${
+                            className={`w-full rounded-xl border px-3.5 py-2.5 text-xs focus:outline-none ${
                               Number(formData.classNumber) >= 11
-                                ? 'border-slate-200 bg-slate-50 focus:border-amber-500 focus:bg-white'
+                                ? 'border-slate-200 bg-slate-50 text-slate-900 focus:border-amber-500 focus:bg-white'
                                 : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
                             }`}
                           >
@@ -656,15 +666,15 @@ export default function AddStudentPage() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
                             <span>Roll Number *</span>
-                            <span className="text-[10px] text-emerald-600 font-normal">Auto-Suggested</span>
+                            <span className="text-[10px] text-emerald-600 font-medium">Auto-Suggested</span>
                           </label>
-                          <input type="number" required min="1" placeholder="Roll No..." value={formData.rollNumber} onChange={(e) => handleChange('root', 'rollNumber', Number(e.target.value))} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <input type="number" required min="1" placeholder="Roll No..." value={formData.rollNumber} onChange={(e) => handleChange('root', 'rollNumber', Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none font-mono font-bold" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Admission Type</label>
-                          <select value={formData.admissionType} onChange={(e) => handleChange('root', 'admissionType', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Admission Type</label>
+                          <select value={formData.admissionType} onChange={(e) => handleChange('root', 'admissionType', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="Regular">Regular</option>
                             <option value="RTE">RTE</option>
                             <option value="Transfer">Transfer</option>
@@ -672,11 +682,11 @@ export default function AddStudentPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Student Mobile No. <span className="text-red-500 font-bold">*</span> <span className="text-[10px] text-slate-400 font-normal">(Compulsory for Account Recovery)</span>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                            Student Mobile No. <span className="text-red-500 font-bold">*</span>
                           </label>
-                          <div className="flex rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
-                            <span className="px-3 py-2 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
                             <input
                               type="text"
                               required
@@ -687,15 +697,15 @@ export default function AddStudentPage() {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 handleChange('root', 'mobileNo', digits);
                               }}
-                              className="w-full bg-transparent px-3 py-2 text-xs focus:outline-none"
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Alternate Mobile No.</label>
-                          <div className="flex rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
-                            <span className="px-3 py-2 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Alternate Mobile No.</label>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
                             <input
                               type="text"
                               maxLength={10}
@@ -705,12 +715,12 @@ export default function AddStudentPage() {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 handleChange('root', 'alternateMobileNo', digits);
                               }}
-                              className="w-full bg-transparent px-3 py-2 text-xs focus:outline-none"
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Date of Birth</label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Date of Birth</label>
                           <input
                             type="date"
                             min="1990-01-01"
@@ -722,56 +732,56 @@ export default function AddStudentPage() {
                                 handleChange('root', 'dateOfBirth', val);
                               }
                             }}
-                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none"
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Birth Place</label>
-                          <input type="text" placeholder="e.g. Jaipur" value={formData.birthPlace} onChange={(e) => handleChange('root', 'birthPlace', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Birth Place</label>
+                          <input type="text" placeholder="e.g. Jaipur" value={formData.birthPlace} onChange={(e) => handleChange('root', 'birthPlace', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Gender</label>
-                          <select value={formData.gender} onChange={(e) => handleChange('root', 'gender', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
+                          <select value={formData.gender} onChange={(e) => handleChange('root', 'gender', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option>Male</option><option>Female</option><option>Other</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Blood Group</label>
-                          <select value={formData.bloodGroup} onChange={(e) => handleChange('root', 'bloodGroup', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Blood Group</label>
+                          <select value={formData.bloodGroup} onChange={(e) => handleChange('root', 'bloodGroup', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select...</option>
                             {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg}>{bg}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Nationality</label>
-                          <input type="text" value={formData.nationality} onChange={(e) => handleChange('root', 'nationality', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Nationality</label>
+                          <input type="text" value={formData.nationality} onChange={(e) => handleChange('root', 'nationality', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Religion</label>
-                          <select value={formData.religion} onChange={(e) => handleChange('root', 'religion', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Religion</label>
+                          <select value={formData.religion} onChange={(e) => handleChange('root', 'religion', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select...</option>
                             <option>Hindu</option><option>Muslim</option><option>Christian</option><option>Sikh</option><option>Other</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Category</label>
-                          <select value={formData.category} onChange={(e) => handleChange('root', 'category', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+                          <select value={formData.category} onChange={(e) => handleChange('root', 'category', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="">Select...</option>
                             <option>General</option><option>OBC</option><option>SC</option><option>ST</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Physically Disabled</label>
-                          <select value={formData.physicallyDisabled} onChange={(e) => handleChange('root', 'physicallyDisabled', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Physically Disabled</label>
+                          <select value={formData.physicallyDisabled} onChange={(e) => handleChange('root', 'physicallyDisabled', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none">
                             <option value="No">No</option>
                             <option value="Yes">Yes</option>
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Aadhar No.</label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Aadhar No.</label>
                           <input
                             type="text"
                             maxLength={14}
@@ -782,7 +792,7 @@ export default function AddStudentPage() {
                               const formatted = rawDigits.replace(/(\d{4})(?=\d)/g, '$1-');
                               handleChange('root', 'aadharNo', formatted);
                             }}
-                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono focus:border-amber-500 focus:bg-white focus:outline-none"
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:border-amber-500 focus:bg-white focus:outline-none font-bold"
                           />
                         </div>
                       </div>
@@ -791,57 +801,57 @@ export default function AddStudentPage() {
 
                   {/* STEP 2: Address Details */}
                   {currentStep === 2 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Address Details</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Address Details</h2>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800">Permanent Address</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="col-span-1 md:col-span-3">
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Address Details</label>
-                          <textarea rows={2} placeholder="e.g. Flat 402, Sunshine Apartments, Civil Lines" value={formData.permanentAddress.addressDetails} onChange={(e) => handleChange('permanentAddress', 'addressDetails', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">Permanent Address</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Address Details</label>
+                          <textarea rows={2} placeholder="e.g. Flat 402, Sunshine Apartments, Civil Lines" value={formData.permanentAddress.addressDetails} onChange={(e) => handleChange('permanentAddress', 'addressDetails', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">City / Village</label>
-                          <input type="text" placeholder="e.g. Jaipur" value={formData.permanentAddress.city} onChange={(e) => handleChange('permanentAddress', 'city', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">City / Village</label>
+                          <input type="text" placeholder="e.g. Jaipur" value={formData.permanentAddress.city} onChange={(e) => handleChange('permanentAddress', 'city', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">State</label>
-                          <input type="text" placeholder="e.g. Rajasthan" value={formData.permanentAddress.state} onChange={(e) => handleChange('permanentAddress', 'state', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
+                          <input type="text" placeholder="e.g. Rajasthan" value={formData.permanentAddress.state} onChange={(e) => handleChange('permanentAddress', 'state', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Pin Code</label>
-                          <input type="text" placeholder="e.g. 302001" value={formData.permanentAddress.pinCode} onChange={(e) => handleChange('permanentAddress', 'pinCode', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Pin Code</label>
+                          <input type="text" placeholder="e.g. 302001" value={formData.permanentAddress.pinCode} onChange={(e) => handleChange('permanentAddress', 'pinCode', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none font-mono" />
                         </div>
                       </div>
 
-                      <div className="pt-6 mt-6 border-t border-slate-100">
-                        <div className="flex items-center gap-3 mb-4">
-                          <h3 className="text-sm font-medium text-slate-800">Local Address</h3>
-                          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" checked={formData.sameAsPermanent} onChange={(e) => handleChange('root', 'sameAsPermanent', e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
-                            Same as Permanent Address
+                      <div className="pt-5 mt-5 border-t border-slate-100">
+                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">Local Address</h3>
+                          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+                            <input type="checkbox" checked={formData.sameAsPermanent} onChange={(e) => handleChange('root', 'sameAsPermanent', e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600" />
+                            <span>Same as Permanent Address</span>
                           </label>
                         </div>
 
                         {!formData.sameAsPermanent && (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="col-span-1 md:col-span-3">
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Address Details</label>
-                              <textarea rows={2} placeholder="e.g. House No. 12, Subhash Nagar" value={formData.localAddress.addressDetails} onChange={(e) => handleChange('localAddress', 'addressDetails', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                            <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+                              <label className="block text-xs font-semibold text-slate-700 mb-1">Address Details</label>
+                              <textarea rows={2} placeholder="e.g. House No. 12, Subhash Nagar" value={formData.localAddress.addressDetails} onChange={(e) => handleChange('localAddress', 'addressDetails', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">City / Village</label>
-                              <input type="text" placeholder="e.g. Jaipur" value={formData.localAddress.city} onChange={(e) => handleChange('localAddress', 'city', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                              <label className="block text-xs font-semibold text-slate-700 mb-1">City / Village</label>
+                              <input type="text" placeholder="e.g. Jaipur" value={formData.localAddress.city} onChange={(e) => handleChange('localAddress', 'city', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">State</label>
-                              <input type="text" placeholder="e.g. Rajasthan" value={formData.localAddress.state} onChange={(e) => handleChange('localAddress', 'state', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                              <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
+                              <input type="text" placeholder="e.g. Rajasthan" value={formData.localAddress.state} onChange={(e) => handleChange('localAddress', 'state', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Pin Code</label>
-                              <input type="text" placeholder="e.g. 302001" value={formData.localAddress.pinCode} onChange={(e) => handleChange('localAddress', 'pinCode', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                              <label className="block text-xs font-semibold text-slate-700 mb-1">Pin Code</label>
+                              <input type="text" placeholder="e.g. 302001" value={formData.localAddress.pinCode} onChange={(e) => handleChange('localAddress', 'pinCode', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none font-mono" />
                             </div>
                           </div>
                         )}
@@ -851,25 +861,25 @@ export default function AddStudentPage() {
 
                   {/* STEP 3: Guardian Details */}
                   {currentStep === 3 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Guardian Details</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Guardian Details</h2>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800">Father's Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">Father's Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
-                          <input type="text" placeholder="e.g. Rajesh" value={formData.fatherDetails.firstName} onChange={(e) => handleChange('fatherDetails', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                          <input type="text" placeholder="e.g. Rajesh" value={formData.fatherDetails.firstName} onChange={(e) => handleChange('fatherDetails', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                          <input type="text" placeholder="e.g. Sharma" value={formData.fatherDetails.lastName} onChange={(e) => handleChange('fatherDetails', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                          <input type="text" placeholder="e.g. Sharma" value={formData.fatherDetails.lastName} onChange={(e) => handleChange('fatherDetails', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Mobile No.</label>
-                          <div className="flex rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
-                            <span className="px-3 py-2 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile No.</label>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
                             <input
                               type="text"
                               maxLength={10}
@@ -879,34 +889,34 @@ export default function AddStudentPage() {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 handleChange('fatherDetails', 'phone', digits);
                               }}
-                              className="w-full bg-transparent px-3 py-2 text-xs focus:outline-none"
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Email ID</label>
-                          <input type="email" placeholder="e.g. rajesh.sharma@example.com" value={formData.fatherDetails.email} onChange={(e) => handleChange('fatherDetails', 'email', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Email ID</label>
+                          <input type="email" placeholder="e.g. rajesh.sharma@example.com" value={formData.fatherDetails.email} onChange={(e) => handleChange('fatherDetails', 'email', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Occupation</label>
-                          <input type="text" placeholder="e.g. Engineer / Business" value={formData.fatherDetails.occupation} onChange={(e) => handleChange('fatherDetails', 'occupation', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Occupation</label>
+                          <input type="text" placeholder="e.g. Engineer / Business" value={formData.fatherDetails.occupation} onChange={(e) => handleChange('fatherDetails', 'occupation', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800 pt-4 border-t border-slate-100">Mother's Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider pt-4 border-t border-slate-100">Mother's Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
-                          <input type="text" placeholder="e.g. Sunita" value={formData.motherDetails.firstName} onChange={(e) => handleChange('motherDetails', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                          <input type="text" placeholder="e.g. Sunita" value={formData.motherDetails.firstName} onChange={(e) => handleChange('motherDetails', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                          <input type="text" placeholder="e.g. Sharma" value={formData.motherDetails.lastName} onChange={(e) => handleChange('motherDetails', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                          <input type="text" placeholder="e.g. Sharma" value={formData.motherDetails.lastName} onChange={(e) => handleChange('motherDetails', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Mobile No.</label>
-                          <div className="flex rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
-                            <span className="px-3 py-2 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile No.</label>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
                             <input
                               type="text"
                               maxLength={10}
@@ -916,34 +926,34 @@ export default function AddStudentPage() {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 handleChange('motherDetails', 'phone', digits);
                               }}
-                              className="w-full bg-transparent px-3 py-2 text-xs focus:outline-none"
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Email ID</label>
-                          <input type="email" placeholder="e.g. sunita.sharma@example.com" value={formData.motherDetails.email} onChange={(e) => handleChange('motherDetails', 'email', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Email ID</label>
+                          <input type="email" placeholder="e.g. sunita.sharma@example.com" value={formData.motherDetails.email} onChange={(e) => handleChange('motherDetails', 'email', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Occupation</label>
-                          <input type="text" placeholder="e.g. Doctor / Homemaker" value={formData.motherDetails.occupation} onChange={(e) => handleChange('motherDetails', 'occupation', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Occupation</label>
+                          <input type="text" placeholder="e.g. Doctor / Homemaker" value={formData.motherDetails.occupation} onChange={(e) => handleChange('motherDetails', 'occupation', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-medium text-slate-800 pt-4 border-t border-slate-100">Local Guardian Details (Optional)</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider pt-4 border-t border-slate-100">Local Guardian Details (Optional)</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
-                          <input type="text" placeholder="e.g. Amit" value={formData.localGuardianDetails.firstName} onChange={(e) => handleChange('localGuardianDetails', 'firstName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                          <input type="text" placeholder="e.g. Amit" value={formData.localGuardianDetails.firstName} onChange={(e) => handleChange('localGuardianDetails', 'firstName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                          <input type="text" placeholder="e.g. Sharma" value={formData.localGuardianDetails.lastName} onChange={(e) => handleChange('localGuardianDetails', 'lastName', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                          <input type="text" placeholder="e.g. Sharma" value={formData.localGuardianDetails.lastName} onChange={(e) => handleChange('localGuardianDetails', 'lastName', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Mobile No.</label>
-                          <div className="flex rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
-                            <span className="px-3 py-2 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile No.</label>
+                          <div className="flex rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-amber-500 focus-within:bg-white">
+                            <span className="px-3 py-2.5 bg-slate-200/70 text-slate-600 text-xs font-semibold border-r border-slate-200 flex items-center">+91</span>
                             <input
                               type="text"
                               maxLength={10}
@@ -953,17 +963,17 @@ export default function AddStudentPage() {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 handleChange('localGuardianDetails', 'phone', digits);
                               }}
-                              className="w-full bg-transparent px-3 py-2 text-xs focus:outline-none"
+                              className="w-full bg-transparent px-3.5 py-2.5 text-xs focus:outline-none font-medium"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Email ID</label>
-                          <input type="email" placeholder="e.g. amit.sharma@example.com" value={formData.localGuardianDetails.email} onChange={(e) => handleChange('localGuardianDetails', 'email', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Email ID</label>
+                          <input type="email" placeholder="e.g. amit.sharma@example.com" value={formData.localGuardianDetails.email} onChange={(e) => handleChange('localGuardianDetails', 'email', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Relation</label>
-                          <input type="text" placeholder="e.g. Uncle / Local Guardian" value={formData.localGuardianDetails.relation} onChange={(e) => handleChange('localGuardianDetails', 'relation', e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:border-amber-500 focus:bg-white focus:outline-none" />
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Relation</label>
+                          <input type="text" placeholder="e.g. Uncle / Local Guardian" value={formData.localGuardianDetails.relation} onChange={(e) => handleChange('localGuardianDetails', 'relation', e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none" />
                         </div>
                       </div>
                     </div>
@@ -971,33 +981,33 @@ export default function AddStudentPage() {
 
                   {/* STEP 4: Photo & Signature */}
                   {currentStep === 4 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <div className="border-b border-slate-100 pb-4 mb-6">
-                        <h2 className="text-lg font-serif font-semibold text-slate-900">Photo & Signature Upload</h2>
+                    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="border-b border-slate-100 pb-3 mb-4">
+                        <h2 className="text-base sm:text-lg font-serif font-semibold text-slate-900">Photo & Signature Upload</h2>
                       </div>
 
-                      <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-4 rounded-xl flex items-start gap-3 mb-6">
+                      <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3.5 sm:p-4 rounded-xl flex items-start gap-3 mb-4">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                         <span>Upload student photo and signature image files directly from your computer. Files must be JPG, JPEG, or PNG formats up to <strong>400 KB</strong>.</span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                         {/* Student Photo Upload */}
-                        <div className="p-6 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center gap-4 text-center">
-                          <div className="w-36 h-36 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-sm relative group">
+                        <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center gap-4 text-center">
+                          <div className="w-32 h-32 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-xs relative group">
                             {formData.photoUrl ? (
                               <img src={formData.photoUrl} alt="Student" className="w-full h-full object-cover" />
                             ) : (
                               <div className="flex flex-col items-center gap-1.5 p-2">
-                                <User className="w-10 h-10 opacity-40 text-slate-500" />
-                                <span className="text-[11px] font-medium text-slate-400">No Photo Selected</span>
+                                <User className="w-9 h-9 opacity-40 text-slate-500" />
+                                <span className="text-[11px] font-medium text-slate-400">No Photo</span>
                               </div>
                             )}
                           </div>
                           <div className="w-full space-y-2">
                             <label className="block text-xs font-semibold text-slate-800">Upload Student Passport Photo</label>
-                            <span className="block text-[11px] text-slate-500 mb-2">Max file size: 400 KB (JPG / PNG)</span>
-                            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors shadow-sm">
+                            <span className="block text-[11px] text-slate-500 mb-2">Max size: 400 KB (JPG / PNG)</span>
+                            <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
                               <span>Choose Image File</span>
                               <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                             </label>
@@ -1005,7 +1015,7 @@ export default function AddStudentPage() {
                               <button
                                 type="button"
                                 onClick={() => handleChange('root', 'photoUrl', '')}
-                                className="block mx-auto text-[11px] text-rose-600 font-medium hover:underline pt-1"
+                                className="block mx-auto text-[11px] text-rose-600 font-semibold hover:underline pt-1"
                               >
                                 Remove Photo
                               </button>
@@ -1014,21 +1024,21 @@ export default function AddStudentPage() {
                         </div>
 
                         {/* Student Signature Upload */}
-                        <div className="p-6 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center gap-4 text-center">
-                          <div className="w-56 h-28 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-sm relative group">
+                        <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center gap-4 text-center">
+                          <div className="w-48 h-28 bg-white rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 shadow-xs relative group">
                             {formData.signatureUrl ? (
                               <img src={formData.signatureUrl} alt="Signature" className="w-full h-full object-contain p-2" />
                             ) : (
                               <div className="flex flex-col items-center gap-1.5 p-2">
                                 <FileText className="w-8 h-8 opacity-40 text-slate-500" />
-                                <span className="text-[11px] font-medium text-slate-400">No Signature Selected</span>
+                                <span className="text-[11px] font-medium text-slate-400">No Signature</span>
                               </div>
                             )}
                           </div>
                           <div className="w-full space-y-2">
                             <label className="block text-xs font-semibold text-slate-800">Upload Student Signature</label>
-                            <span className="block text-[11px] text-slate-500 mb-2">Max file size: 400 KB (JPG / PNG)</span>
-                            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors shadow-sm">
+                            <span className="block text-[11px] text-slate-500 mb-2">Max size: 400 KB (JPG / PNG)</span>
+                            <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
                               <span>Choose Signature File</span>
                               <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
                             </label>
@@ -1036,7 +1046,7 @@ export default function AddStudentPage() {
                               <button
                                 type="button"
                                 onClick={() => handleChange('root', 'signatureUrl', '')}
-                                className="block mx-auto text-[11px] text-rose-600 font-medium hover:underline pt-1"
+                                className="block mx-auto text-[11px] text-rose-600 font-semibold hover:underline pt-1"
                               >
                                 Remove Signature
                               </button>
@@ -1048,13 +1058,13 @@ export default function AddStudentPage() {
                   )}
 
                   {/* Form Actions Footer */}
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-6">
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-5">
                     <button
                       key={`btn-prev-step-${currentStep}`}
                       type="button"
                       disabled={currentStep === 1 || submitting}
                       onClick={(e) => handlePrev(e)}
-                      className="border border-slate-300 text-slate-600 rounded-lg px-5 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-30 flex items-center gap-2"
+                      className="border border-slate-300 text-slate-700 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs font-semibold hover:bg-slate-50 disabled:opacity-30 flex items-center gap-2 cursor-pointer"
                     >
                       <ArrowLeft className="h-3.5 w-3.5" /> Prev
                     </button>
@@ -1064,7 +1074,7 @@ export default function AddStudentPage() {
                         key={`btn-next-step-${currentStep}`}
                         type="button"
                         onClick={(e) => handleNext(e)}
-                        className="bg-slate-900 text-white rounded-lg px-5 py-2 text-xs font-medium hover:bg-slate-800 flex items-center gap-2"
+                        className="bg-slate-900 text-white rounded-xl px-5 sm:px-6 py-2 sm:py-2.5 text-xs font-semibold hover:bg-slate-800 flex items-center gap-2 shadow-xs cursor-pointer"
                       >
                         Next <ArrowRight className="h-3.5 w-3.5" />
                       </button>
@@ -1073,7 +1083,7 @@ export default function AddStudentPage() {
                         key="btn-submit-final-step"
                         type="submit"
                         disabled={submitting}
-                        className="bg-emerald-600 text-white rounded-lg px-6 py-2 text-xs font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                        className="bg-emerald-600 text-white rounded-xl px-5 sm:px-6 py-2 sm:py-2.5 text-xs font-bold hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 shadow-xs cursor-pointer"
                       >
                         {submitting ? 'Saving...' : 'Complete Enrollment'} <CheckCircle2 className="h-4 w-4" />
                       </button>

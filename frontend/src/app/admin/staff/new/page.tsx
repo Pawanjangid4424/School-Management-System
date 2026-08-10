@@ -158,7 +158,7 @@ export default function AddStaffPage() {
           userRole="System Administrator"
         />
 
-        <main className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-5xl mx-auto">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-5xl mx-auto">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Link
@@ -174,19 +174,19 @@ export default function AddStaffPage() {
 
           {/* Form / Result Card */}
           {createdResult ? (
-            /* Success Confirmation Card - Executive & Interactive */
-            <div className="rounded-2xl border border-amber-200 bg-white p-8 shadow-xl space-y-6">
+            /* Success Confirmation Card */
+            <div className="rounded-2xl border border-amber-200 bg-white p-4 sm:p-8 shadow-xl space-y-6">
               {/* Vibrant Gradient Banner Header */}
-              <div className="rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 p-6 text-white shadow-md flex items-center justify-between">
+              <div className="rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 p-4 sm:p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md text-white">
-                    <CheckCircle2 className="h-8 w-8 text-amber-200" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md text-white shrink-0">
+                    <CheckCircle2 className="h-7 w-7 text-amber-200" />
                   </div>
                   <div>
-                    <span className="inline-block rounded-full bg-amber-500/30 px-3 py-0.5 text-[11px] font-semibold tracking-wider text-amber-100 uppercase mb-1">
+                    <span className="inline-block rounded-full bg-amber-500/30 px-3 py-0.5 text-[10px] font-semibold tracking-wider text-amber-100 uppercase mb-0.5">
                       🎉 Onboarding Complete
                     </span>
-                    <h2 className="font-serif text-2xl font-bold text-white">
+                    <h2 className="font-serif text-xl sm:text-2xl font-bold text-white">
                       Staff Member Successfully Onboarded!
                     </h2>
                     <p className="text-xs text-amber-100 mt-0.5">
@@ -206,7 +206,7 @@ export default function AddStaffPage() {
               </div>
 
               {/* Staff Summary Sub-header */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                 <div>
                   <span className="block text-[11px] text-slate-400 font-medium">Staff Name</span>
                   <strong className="text-slate-800 text-sm font-semibold">
@@ -235,7 +235,7 @@ export default function AddStaffPage() {
 
               {/* Generated Credentials Grid */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <h3 className="font-serif text-sm font-bold text-slate-900 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-amber-600" />
                     System Account Credentials & Mailbox Provisioning
@@ -243,7 +243,7 @@ export default function AddStaffPage() {
                   <span className="text-[11px] text-slate-400 font-medium">Unique Account Details</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Permanent Staff ID */}
                   <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-amber-300 transition-colors space-y-2">
                     <div className="flex items-center justify-between text-xs text-slate-500">
@@ -254,7 +254,7 @@ export default function AddStaffPage() {
                       <button
                         type="button"
                         onClick={() => handleCopy(String(createdResult.staffId), 'staffId')}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                       >
                         {copiedField === 'staffId' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                         {copiedField === 'staffId' ? 'Copied' : 'Copy'}
@@ -275,7 +275,7 @@ export default function AddStaffPage() {
                       <button
                         type="button"
                         onClick={() => handleCopy(createdResult.username, 'username')}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                       >
                         {copiedField === 'username' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                         {copiedField === 'username' ? 'Copied' : 'Copy'}
@@ -296,7 +296,7 @@ export default function AddStaffPage() {
                       <button
                         type="button"
                         onClick={() => handleCopy(createdResult.email, 'email')}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                       >
                         {copiedField === 'email' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                         {copiedField === 'email' ? 'Copied' : 'Copy'}
@@ -318,7 +318,7 @@ export default function AddStaffPage() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                          className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
                         >
                           {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                           {showPassword ? 'Hide' : 'Show'}
@@ -326,7 +326,7 @@ export default function AddStaffPage() {
                         <button
                           type="button"
                           onClick={() => handleCopy(createdResult.defaultPassword || 'StaffPass123!', 'password')}
-                          className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                          className="text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                         >
                           {copiedField === 'password' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {copiedField === 'password' ? 'Copied' : 'Copy'}
@@ -343,9 +343,9 @@ export default function AddStaffPage() {
                 </div>
 
                 {/* Mailbox Status Card */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-500" />
+                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
                     <span className="font-medium text-slate-700">
                       Mailbox Provisioning Queue:
                     </span>
@@ -357,7 +357,7 @@ export default function AddStaffPage() {
                 </div>
               </div>
 
-              {/* Security & Password Self-Service Note */}
+              {/* Security Note */}
               <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 text-xs text-blue-900 flex items-start gap-3">
                 <Lock className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <div className="space-y-1">
@@ -373,7 +373,7 @@ export default function AddStaffPage() {
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="bg-slate-900 text-white rounded-xl px-5 py-2.5 text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm"
+                  className="bg-slate-900 text-white rounded-xl px-5 py-2.5 text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Onboard Another Staff Member</span>
@@ -390,8 +390,8 @@ export default function AddStaffPage() {
             </div>
           ) : (
             /* Creation Form */
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="border-b border-slate-100 pb-5 mb-6">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 lg:p-8 shadow-xs">
+              <div className="border-b border-slate-100 pb-4 mb-6">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-amber-500" strokeWidth={1.75} />
                   <h2 className="font-serif text-lg font-semibold text-slate-900">
@@ -405,19 +405,19 @@ export default function AddStaffPage() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
+                  <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
                     {error}
                   </div>
                 )}
 
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     1. Personal Information
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         First Name *
                       </label>
                       <input
@@ -426,12 +426,12 @@ export default function AddStaffPage() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="e.g. Ravindra"
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Last Name *
                       </label>
                       <input
@@ -440,7 +440,7 @@ export default function AddStaffPage() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="e.g. Kumar"
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -448,19 +448,19 @@ export default function AddStaffPage() {
 
                 {/* Professional Assignment */}
                 <div className="space-y-4 border-t border-slate-100 pt-5">
-                  <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     2. Role & Department Assignment
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Designation *
                       </label>
                       <select
                         value={designation}
                         onChange={(e) => setDesignation(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none"
                       >
                         <option value="Senior Teacher">Senior Teacher</option>
                         <option value="Assistant Teacher">Assistant Teacher</option>
@@ -472,13 +472,13 @@ export default function AddStaffPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Department *
                       </label>
                       <select
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none"
                       >
                         <option value="English">English</option>
                         <option value="Hindi">Hindi</option>
@@ -508,7 +508,7 @@ export default function AddStaffPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Joining Date *
                       </label>
                       <input
@@ -516,7 +516,7 @@ export default function AddStaffPage() {
                         required
                         value={joiningDate}
                         onChange={(e) => setJoiningDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -524,13 +524,13 @@ export default function AddStaffPage() {
 
                 {/* Optional Extended Details */}
                 <div className="space-y-4 border-t border-slate-100 pt-5">
-                  <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     3. Optional Extended Details
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Subjects Taught (Comma Separated)
                       </label>
                       <input
@@ -538,12 +538,12 @@ export default function AddStaffPage() {
                         value={subjectsTaught}
                         onChange={(e) => setSubjectsTaught(e.target.value)}
                         placeholder="e.g. Physics, Chemistry, Science Lab"
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Class Teacher Allocation
                       </label>
                       <input
@@ -551,7 +551,7 @@ export default function AddStaffPage() {
                         value={classTeacherOf}
                         onChange={(e) => setClassTeacherOf(e.target.value)}
                         placeholder="e.g. Grade 10-A"
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -561,7 +561,7 @@ export default function AddStaffPage() {
                 <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
                   <Link
                     href="/admin/staff"
-                    className="border border-slate-300 text-slate-600 rounded-lg px-4 py-2 text-xs font-medium hover:bg-slate-50 transition-colors"
+                    className="border border-slate-300 text-slate-700 rounded-xl px-5 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors"
                   >
                     Cancel
                   </Link>
@@ -569,7 +569,7 @@ export default function AddStaffPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="bg-amber-600 text-white rounded-lg px-6 py-2 text-xs font-medium hover:bg-amber-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm"
+                    className="bg-amber-600 text-white rounded-xl px-6 py-2.5 text-xs font-bold hover:bg-amber-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
                   >
                     {submitting ? 'Onboarding...' : 'Complete Staff Onboarding'}
                     <CheckCircle2 className="h-4 w-4" />
