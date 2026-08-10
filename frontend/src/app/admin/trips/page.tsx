@@ -86,7 +86,9 @@ export default function AdminTripsPage() {
       const data = await res.json();
       if (res.ok) {
         setReviewSuccess(
-          `Trip successfully ${status.toLowerCase()}! Queued ${data.notificationsQueued || 0} parent notification items.`,
+          status === 'APPROVED'
+            ? 'Trip approved successfully! Status is now APPROVED. Teacher can now dispatch consent forms to parents from Teacher Portal.'
+            : 'Trip rejected.',
         );
         if (previewTrip && previewTrip.id === tripId) {
           setPreviewTrip(null);

@@ -245,7 +245,7 @@ export default function TeacherTripsPage() {
       const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-      const res = await fetch(`${apiUrl}/trips/${createdTripId}/dispatch-consent`, {
+      const res = await fetch(`${apiUrl}/trips/${createdTripId}/save-roster`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,12 +255,45 @@ export default function TeacherTripsPage() {
       });
 
       if (res.ok) {
-        setCreateSuccess(`Trip proposed with ${selectedStudentIds.length} target students! Submitted for Admin Approval. Consent forms will automatically dispatch to parents once Admin approves.`);
+        setCreateSuccess(`Trip proposed with ${selectedStudentIds.length} target students! Submitted for Admin Approval. (Emails/SMS will be sent ONLY after Admin approves and you click "Dispatch Consent").`);
         setShowCreateModal(false);
         fetchTrips(token as string);
       }
     } catch (err: any) {
-      setError('Failed to dispatch consent forms');
+      setError('Failed to save student roster for proposal');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleTeacherManualDispatch = async (tripId: string) => {
+    if (!confirm('Are you sure you want to dispatch digital consent forms via Email & SMS to parents for this approved trip?')) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const res = await fetch(`${apiUrl}/trips/${tripId}/dispatch-consent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setCreateSuccess(`Consent forms successfully dispatched via Email & SMS to ${data.dispatchedCount || 'selected'} parents!`);
+        fetchTrips(token as string);
+      } else {
+        setError(data.message || 'Failed to dispatch consent forms.');
+      }
+    } catch (err: any) {
+      setError('Error dispatching consent forms to parents');
     } finally {
       setSubmitting(false);
     }
@@ -356,10 +389,23 @@ export default function TeacherTripsPage() {
                           {item.cost ? `₹${item.cost}` : 'Free'}
                         </td>
                         <td className="px-5 py-3.5">
-                          <StatusPill
-                            status={item.status === 'APPROVED' ? 'active' : item.status === 'REJECTED' ? 'error' : 'pending'}
-                            label={item.status}
-                          />
+                          {item.status === 'DISPATCHED' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                              📩 Sent to Parents
+                            </span>
+                          ) : item.status === 'APPROVED' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200">
+                              ✅ Approved by Admin
+                            </span>
+                          ) : item.status === 'REJECTED' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200">
+                              ❌ Rejected
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                              ⏳ Awaiting Admin Approval
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 py-3.5">
                           {item.is_locked ? (
@@ -374,6 +420,22 @@ export default function TeacherTripsPage() {
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {item.status === 'APPROVED' && (
+                              <button
+                                type="button"
+                                onClick={() => handleTeacherManualDispatch(item.id)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
+                              >
+                                🚀 Send Consent to Parents
+                              </button>
+                            )}
+
+                            {item.status === 'PENDING_APPROVAL' && (
+                              <span className="text-[11px] text-amber-700 font-semibold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                                🔒 Awaiting Admin Approval
+                              </span>
+                            )}
+
                             <Link
                               href={`/teacher/trips/${item.id}`}
                               className="p-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors inline-flex items-center gap-1 font-bold text-xs"
@@ -382,7 +444,7 @@ export default function TeacherTripsPage() {
                               <Eye className="h-3.5 w-3.5" />
                             </Link>
 
-                            {!item.is_locked && (
+                            {!item.is_locked && item.status !== 'DISPATCHED' && (
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditTripModal(item)}

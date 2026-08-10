@@ -156,8 +156,7 @@ export class TripsTimetableService {
     return updatedTrip;
   }
 
-  async dispatchConsent(tenantId: string, tripId: string, studentIds: string[]) {
-    // 1. Fetch trip to ensure it exists
+  async saveTripRoster(tenantId: string, tripId: string, studentIds: string[]) {
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId, tenant_id: tenantId },
     });
@@ -166,7 +165,6 @@ export class TripsTimetableService {
       throw new NotFoundException('Trip not found in this tenant');
     }
 
-    // 2. Create permissions for selected students
     const permissions = [];
     for (const studentId of studentIds) {
       const existing = await this.prisma.tripPermission.findFirst({
@@ -184,8 +182,51 @@ export class TripsTimetableService {
         });
       }
       permissions.push(perm);
+    }
 
-      // Queue Notification with real parent email/phone
+    return { savedRosterCount: permissions.length };
+  }
+
+  async dispatchConsent(tenantId: string, tripId: string, studentIds?: string[]) {
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId, tenant_id: tenantId },
+      include: { permissions: true },
+    });
+
+    if (!trip) {
+      throw new NotFoundException('Trip not found in this tenant');
+    }
+
+    if (trip.status !== 'APPROVED' && trip.status !== 'DISPATCHED') {
+      throw new BadRequestException('Trip must be approved by Admin before consent forms can be dispatched to parents.');
+    }
+
+    let targetStudentIds = studentIds && studentIds.length > 0
+      ? studentIds
+      : trip.permissions.map((p) => p.student_profile_id);
+
+    if (targetStudentIds.length === 0) {
+      throw new BadRequestException('No students selected for consent dispatch.');
+    }
+
+    const permissions = [];
+    for (const studentId of targetStudentIds) {
+      const existing = await this.prisma.tripPermission.findFirst({
+        where: { trip_id: trip.id, student_profile_id: studentId },
+      });
+
+      let perm = existing;
+      if (!existing) {
+        perm = await this.prisma.tripPermission.create({
+          data: {
+            trip_id: trip.id,
+            student_profile_id: studentId,
+            permission_status: 'PENDING',
+          },
+        });
+      }
+      permissions.push(perm);
+
       const student = await this.prisma.studentProfile.findUnique({
         where: { id: studentId },
         include: {
@@ -208,27 +249,40 @@ export class TripsTimetableService {
       }
 
       if (recipientEmail && perm) {
-        await this.prisma.notificationQueueItem.create({
-          data: {
-            user_id: student?.user_id || null,
-            recipient_email: recipientEmail,
-            recipient_name: recipientName,
-            type: 'TRIP_CONSENT_REQUIRED',
-            related_entity_id: perm.id,
-            status: 'PENDING_DISPATCH',
-          },
+        const existingNotif = await this.prisma.notificationQueueItem.findFirst({
+          where: { related_entity_id: perm.id, type: 'TRIP_CONSENT_REQUIRED' },
         });
+
+        if (!existingNotif) {
+          await this.prisma.notificationQueueItem.create({
+            data: {
+              user_id: student?.user_id || null,
+              recipient_email: recipientEmail,
+              recipient_name: recipientName,
+              type: 'TRIP_CONSENT_REQUIRED',
+              related_entity_id: perm.id,
+              status: 'PENDING_DISPATCH',
+            },
+          });
+        }
       }
     }
 
-    // Trigger instant email dispatch worker!
+    await this.prisma.trip.update({
+      where: { id: trip.id },
+      data: {
+        status: 'DISPATCHED',
+        is_locked: true,
+      },
+    });
+
     try {
       await this.notificationProcessor.processPendingNotifications();
     } catch (e) {
       console.error('Failed to trigger immediate email dispatch', e);
     }
 
-    return { dispatchedCount: permissions.length };
+    return { dispatchedCount: permissions.length, status: 'DISPATCHED' };
   }
 
   async getTrips(tenantId: string, userId: string, isTeacher: boolean = false) {
@@ -260,7 +314,8 @@ export class TripsTimetableService {
 
   /**
    * Admin approves or rejects a trip.
-   * On APPROVED: sets is_locked = true, inserts NotificationQueueItem row for every TripPermission created for this trip.
+   * On APPROVED: sets status = 'APPROVED'. NO emails are sent to parents by Admin.
+   * Teacher will manually trigger consent dispatch after seeing the APPROVED status.
    */
   async reviewTrip(tenantId: string, reviewerUserId: string, tripId: string, status: 'APPROVED' | 'REJECTED') {
     const reviewerStaffId = await this.getStaffProfileId(reviewerUserId);
@@ -280,62 +335,17 @@ export class TripsTimetableService {
       where: { id: tripId },
       data: {
         status: status.toUpperCase(),
-        is_locked: isApproved ? true : trip.is_locked,
+        is_locked: false,
         reviewed_by_staff_id: reviewerStaffId,
       },
     });
 
-    const notificationsCreated = [];
-
-    // If APPROVED, enqueue NotificationQueueItem rows & trigger instant mail dispatch!
-    if (isApproved) {
-      for (const perm of trip.permissions) {
-        const student = await this.prisma.studentProfile.findUnique({
-          where: { id: perm.student_profile_id },
-          include: {
-            user: true,
-            guardian_links: {
-              include: {
-                guardian_profile: true,
-              },
-            },
-          },
-        });
-
-        let recipientEmail = student?.user?.current_email;
-        let recipientName = student ? `${student.first_name} ${student.last_name}` : 'Parent / Guardian';
-
-        if (student?.guardian_links && student.guardian_links.length > 0) {
-          const primary = student.guardian_links[0].guardian_profile;
-          if (primary?.email) recipientEmail = primary.email;
-          if (primary?.full_name) recipientName = primary.full_name;
-        }
-
-        if (recipientEmail) {
-          const notif = await this.prisma.notificationQueueItem.create({
-            data: {
-              user_id: perm.guardian_user_id || student?.user_id || null,
-              recipient_email: recipientEmail,
-              recipient_name: recipientName,
-              type: 'TRIP_CONSENT_REQUIRED',
-              related_entity_id: perm.id,
-              status: 'PENDING_DISPATCH',
-            },
-          });
-          notificationsCreated.push(notif);
-        }
-      }
-
-      try {
-        await this.notificationProcessor.processPendingNotifications();
-      } catch (e) {
-        console.error('Failed to trigger immediate email dispatch on review', e);
-      }
-    }
-
     return {
       trip: updatedTrip,
-      notificationsQueued: notificationsCreated.length,
+      notificationsQueued: 0,
+      message: isApproved
+        ? 'Trip approved successfully. Teacher can now dispatch consent forms from Teacher Portal.'
+        : 'Trip rejected.',
     };
   }
 

@@ -55,6 +55,18 @@ export class TripsTimetableController {
     return this.service.reviewTrip(tenantId, reviewerUserId, tripId, body.status);
   }
 
+  @Post('trips/:id/save-roster')
+  @UseGuards(RolesGuard)
+  @Roles('TEACHER', 'ADMIN')
+  async saveTripRoster(
+    @Request() req,
+    @Param('id') tripId: string,
+    @Body() body: { studentIds: string[] },
+  ) {
+    const tenantId = req.user.tenant_id;
+    return this.service.saveTripRoster(tenantId, tripId, body.studentIds);
+  }
+
   @Post('trips/:id/dispatch-consent')
   @UseGuards(RolesGuard)
   @Roles('TEACHER', 'ADMIN')
