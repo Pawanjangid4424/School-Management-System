@@ -13,6 +13,48 @@ import { Topbar } from '@/components/layout/Topbar';
 import { CodeBadge } from '@/components/ui/CodeBadge';
 import { StatusPill } from '@/components/ui/StatusPill';
 
+// Helper function to compress high-res camera photos & signatures on frontend
+const compressImage = (file: File, maxDim = 600, quality = 0.75): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(event.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function AddStudentPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -192,40 +234,32 @@ export default function AddStudentPage() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 400 * 1024) {
-      const sizeKB = Math.round(file.size / 1024);
-      setError(`⚠️ Photo size exceeds 400 KB (Actual size: ${sizeKB} KB). Please select an image under 400 KB.`);
-      return;
+    try {
+      setError('');
+      const compressed = await compressImage(file, 600, 0.75);
+      handleChange('root', 'photoUrl', compressed);
+    } catch (err) {
+      console.error('Photo compression error', err);
+      setError('Failed to process photo file. Please try another image.');
     }
-
-    setError('');
-    const reader = new FileReader();
-    reader.onload = () => {
-      handleChange('root', 'photoUrl', reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
-  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 400 * 1024) {
-      const sizeKB = Math.round(file.size / 1024);
-      setError(`⚠️ Signature size exceeds 400 KB (Actual size: ${sizeKB} KB). Please select an image under 400 KB.`);
-      return;
+    try {
+      setError('');
+      const compressed = await compressImage(file, 600, 0.75);
+      handleChange('root', 'signatureUrl', compressed);
+    } catch (err) {
+      console.error('Signature compression error', err);
+      setError('Failed to process signature file. Please try another image.');
     }
-
-    setError('');
-    const reader = new FileReader();
-    reader.onload = () => {
-      handleChange('root', 'signatureUrl', reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -378,7 +412,7 @@ export default function AddStudentPage() {
                 </button>
               </div>
 
-              {/* Student Comprehensive Profile Summary */}
+              {/* Student Profile Summary */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-4 print:bg-white print:border-slate-300 print:p-3">
                 <div className="flex flex-col sm:flex-row gap-4 items-start">
                   <div className="w-24 h-28 bg-white border border-slate-300 rounded-lg overflow-hidden flex items-center justify-center text-slate-400 shrink-0 shadow-sm">
@@ -582,7 +616,7 @@ export default function AddStudentPage() {
                 </div>
               </div>
 
-              {/* Main Form Area - 100% Mobile & Tablet Responsive */}
+              {/* Main Form Area */}
               <div className="flex-1 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 lg:p-8 shadow-xs min-w-0">
                 <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                   {error && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">{error}</div>}
@@ -988,7 +1022,7 @@ export default function AddStudentPage() {
 
                       <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3.5 sm:p-4 rounded-xl flex items-start gap-3 mb-4">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>Upload student photo and signature image files directly from your computer. Files must be JPG, JPEG, or PNG formats up to <strong>400 KB</strong>.</span>
+                        <span>Upload student photo and signature image files. Camera photos are automatically optimized & compressed for instant enrollment.</span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
@@ -1006,7 +1040,7 @@ export default function AddStudentPage() {
                           </div>
                           <div className="w-full space-y-2">
                             <label className="block text-xs font-semibold text-slate-800">Upload Student Passport Photo</label>
-                            <span className="block text-[11px] text-slate-500 mb-2">Max size: 400 KB (JPG / PNG)</span>
+                            <span className="block text-[11px] text-slate-500 mb-2">Auto-compressed for instant upload</span>
                             <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
                               <span>Choose Image File</span>
                               <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -1037,7 +1071,7 @@ export default function AddStudentPage() {
                           </div>
                           <div className="w-full space-y-2">
                             <label className="block text-xs font-semibold text-slate-800">Upload Student Signature</label>
-                            <span className="block text-[11px] text-slate-500 mb-2">Max size: 400 KB (JPG / PNG)</span>
+                            <span className="block text-[11px] text-slate-500 mb-2">Auto-compressed for instant upload</span>
                             <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs w-full sm:w-auto">
                               <span>Choose Signature File</span>
                               <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
