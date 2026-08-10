@@ -38,8 +38,8 @@ export default function TeacherAttendancePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -124,7 +124,7 @@ export default function TeacherAttendancePage() {
     setSelectedClassIdx(idx);
     const cls = assignedClasses[idx];
     if (cls) {
-      const token = localStorage.getItem('access_token') || '';
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
       fetchRoster(token, cls.classNumber, cls.section, selectedDate);
     }
   };
@@ -134,7 +134,7 @@ export default function TeacherAttendancePage() {
     setSelectedDate(newDate);
     const cls = assignedClasses[selectedClassIdx];
     if (cls) {
-      const token = localStorage.getItem('access_token') || '';
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
       fetchRoster(token, cls.classNumber, cls.section, newDate);
     }
   };
@@ -149,8 +149,19 @@ export default function TeacherAttendancePage() {
     setSubmitSuccess('');
 
     try {
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const payload = {
+        classNumber: cls.classNumber,
+        section: cls.section,
+        date: selectedDate,
+        records: studentMarks.map((s) => ({
+          studentProfileId: s.studentProfileId,
+          status: s.status,
+          remarks: s.remarks,
+        })),
+      };
 
       const res = await fetch(`${apiUrl}/teacher/attendance/mark`, {
         method: 'POST',
@@ -158,24 +169,15 @@ export default function TeacherAttendancePage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          classNumber: cls.classNumber,
-          section: cls.section,
-          date: selectedDate,
-          records: studentMarks.map((m) => ({
-            studentProfileId: m.studentProfileId,
-            status: m.status,
-            remarks: m.remarks,
-          })),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to submit attendance');
 
-      setSubmitSuccess(`Attendance for Grade ${cls.classNumber}-${cls.section} on ${selectedDate} saved!`);
+      setSubmitSuccess('Attendance saved and submitted successfully!');
     } catch (err: any) {
-      setError(err.message || 'Error submitting attendance.');
+      setError(err.message || 'An error occurred while saving attendance.');
     } finally {
       setSubmitting(false);
     }
@@ -184,36 +186,35 @@ export default function TeacherAttendancePage() {
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-500 text-xs">
-        Loading Attendance Sheet...
+        Loading Attendance Module...
       </div>
     );
   }
 
-  const currentClass = assignedClasses[selectedClassIdx];
+  const selectedClass = assignedClasses[selectedClassIdx];
+  const presentCount = studentMarks.filter((s) => s.status === 'PRESENT').length;
+  const absentCount = studentMarks.filter((s) => s.status === 'ABSENT').length;
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar with TEACHER role */}
       <Sidebar role="TEACHER" tenantName={user?.tenant_name} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 pl-64">
-        {/* Topbar */}
+      <div className="flex-1 pl-0 md:pl-64 transition-all duration-300 min-w-0">
         <Topbar
           title="Daily Attendance Marking Roster"
           userName={`Welcome, ${user?.username || 'Faculty Member'}`}
           userRole="Class & Subject Faculty"
         />
 
-        <main className="px-8 py-6 space-y-6 max-w-5xl">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-6xl mx-auto">
           {/* Header Controls Card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h2 className="font-serif text-lg font-semibold text-slate-900">
                   Select Assigned Class & Date
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Only classes assigned to you are accessible. One-click status marking per student.
                 </p>
               </div>
@@ -223,15 +224,15 @@ export default function TeacherAttendancePage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Assigned Class / Subject *
                 </label>
                 <select
                   value={selectedClassIdx}
                   onChange={handleClassSelectionChange}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 font-medium focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:border-amber-500 focus:bg-white focus:outline-none"
                 >
                   {assignedClasses.length === 0 ? (
                     <option value={0}>No Assigned Classes Found</option>
@@ -246,117 +247,115 @@ export default function TeacherAttendancePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Attendance Date *
                 </label>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 font-medium focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:border-amber-500 focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
-
-            {submitSuccess && (
-              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <span>{submitSuccess}</span>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
-                {error}
-              </div>
-            )}
           </div>
 
-          {/* Roster Table Card */}
-          {currentClass && (
-            <form onSubmit={handleSubmitAttendance} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden space-y-4">
-              <div className="border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-                <div>
-                  <h3 className="font-serif text-base font-semibold text-slate-900">
-                    Grade {currentClass.classNumber}-{currentClass.section} Roster ({studentMarks.length} Students)
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Click status pill to toggle Present / Absent / Half-Day.
-                  </p>
-                </div>
+          {error && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-700 font-medium">{error}</div>}
+          {submitSuccess && <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800 font-semibold">{submitSuccess}</div>}
 
-                <button
-                  type="submit"
-                  disabled={submitting || studentMarks.length === 0}
-                  className="bg-amber-500 text-slate-950 font-semibold rounded-lg px-5 py-2 text-xs hover:bg-amber-400 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{submitting ? 'Saving Marks...' : 'Submit Daily Attendance'}</span>
-                </button>
+          {/* Roster Area */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden space-y-4">
+            <div className="border-b border-slate-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <span className="font-serif font-bold text-slate-900 text-sm sm:text-base">
+                  Roster: Grade {selectedClass?.classNumber}-{selectedClass?.section}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">({studentMarks.length} Total Enrolled)</span>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-medium">
-                    <tr>
-                      <th className="px-6 py-3">Roll No</th>
-                      <th className="px-6 py-3">Student Name</th>
-                      <th className="px-6 py-3">Student Code</th>
-                      <th className="px-6 py-3">One-Click Attendance Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {studentMarks.length === 0 ? (
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl">Present: {presentCount}</span>
+                <span className="px-3 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl">Absent: {absentCount}</span>
+              </div>
+            </div>
+
+            {rosterLoading ? (
+              <div className="p-8 text-center text-slate-400 text-xs font-medium">Loading Roster...</div>
+            ) : studentMarks.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">No students enrolled in this class section.</div>
+            ) : (
+              <form onSubmit={handleSubmitAttendance} className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[550px]">
+                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-semibold">
                       <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-slate-400 text-xs">
-                          No active students found in Grade {currentClass.classNumber}-{currentClass.section}.
-                        </td>
+                        <th className="px-5 py-3">Roll No</th>
+                        <th className="px-5 py-3">Student Name</th>
+                        <th className="px-5 py-3">Student Code</th>
+                        <th className="px-5 py-3">Status Action</th>
+                        <th className="px-5 py-3">Remarks</th>
                       </tr>
-                    ) : (
-                      studentMarks.map((item, idx) => (
-                        <tr key={item.studentProfileId} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="px-6 py-3.5 font-mono text-slate-500">
-                            #{item.rollNo}
-                          </td>
-                          <td className="px-6 py-3.5 font-medium text-slate-900">
-                            {item.name}
-                          </td>
-                          <td className="px-6 py-3.5">
-                            <CodeBadge code={item.studentCode} />
-                          </td>
-                          <td className="px-6 py-3.5">
-                            <div className="flex items-center gap-2">
-                              {['PRESENT', 'ABSENT', 'HALF_DAY'].map((status) => {
-                                const isSelected = item.status === status;
-                                return (
-                                  <button
-                                    key={status}
-                                    type="button"
-                                    onClick={() => handleStatusChange(idx, status)}
-                                    className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                                      isSelected
-                                        ? status === 'PRESENT'
-                                          ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-600'
-                                          : status === 'ABSENT'
-                                          ? 'bg-rose-600 text-white shadow-sm ring-1 ring-rose-600'
-                                          : 'bg-amber-500 text-slate-950 shadow-sm ring-1 ring-amber-500'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    }`}
-                                  >
-                                    {status}
-                                  </button>
-                                );
-                              })}
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {studentMarks.map((s, idx) => (
+                        <tr key={s.studentProfileId} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-5 py-3 font-mono font-bold text-slate-800">#{s.rollNo}</td>
+                          <td className="px-5 py-3 font-bold text-slate-900">{s.name}</td>
+                          <td className="px-5 py-3"><CodeBadge code={s.studentCode} /></td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-1.5">
+                              {['PRESENT', 'ABSENT', 'HALF_DAY', 'LATE'].map((st) => (
+                                <button
+                                  key={st}
+                                  type="button"
+                                  onClick={() => handleStatusChange(idx, st)}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                    s.status === st
+                                      ? st === 'PRESENT'
+                                        ? 'bg-emerald-600 text-white shadow-2xs'
+                                        : st === 'ABSENT'
+                                        ? 'bg-rose-600 text-white shadow-2xs'
+                                        : 'bg-amber-600 text-white shadow-2xs'
+                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {st.replace('_', ' ')}
+                                </button>
+                              ))}
                             </div>
                           </td>
+                          <td className="px-5 py-3">
+                            <input
+                              type="text"
+                              placeholder="Add remark..."
+                              value={s.remarks}
+                              onChange={(e) => {
+                                const updated = [...studentMarks];
+                                updated[idx].remarks = e.target.value;
+                                setStudentMarks(updated);
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs focus:bg-white focus:border-amber-500 focus:outline-none"
+                            />
+                          </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </form>
-          )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{submitting ? 'Submitting...' : 'Save & Submit Attendance'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </main>
       </div>
     </div>

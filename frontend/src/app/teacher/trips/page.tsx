@@ -84,8 +84,8 @@ export default function TeacherTripsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -148,37 +148,29 @@ export default function TeacherTripsPage() {
 
   const handleOpenEditTripModal = (trip: any) => {
     if (trip.is_locked) {
-      setError('Trip details become frozen once approved and sent to parents.');
+      setError('Locked trips cannot be edited.');
       return;
     }
     setEditingTripId(trip.id);
-    const clsIdx = schoolClasses.findIndex(
-      (c: any) => c.classNumber === trip.class_number && c.section === trip.section
-    );
-    setSelectedClassIdx(clsIdx >= 0 ? clsIdx : 0);
-
     setFormData({
-      tripTitle: trip.description || 'Science Park Field Trip',
+      tripTitle: trip.destination || 'Field Trip',
       destination: trip.destination || '',
       date: trip.trip_date ? new Date(trip.trip_date).toISOString().split('T')[0] : '',
-      departureTime: trip.departure_time || '8:00 AM',
-      arrivalTime: trip.arrival_time || '9:30 AM',
-      returnTime: trip.return_time || '4:00 PM',
-      phone1: trip.emergency_contact_phone1 || '+91 88753 33348',
-      phone2: trip.emergency_contact_phone2 || '+91 89630 03348',
+      departureTime: trip.departure_time || '',
+      arrivalTime: trip.arrival_time || '',
+      returnTime: trip.return_time || '',
+      phone1: trip.phone1 || '+91 88753 33348',
+      phone2: trip.phone2 || '+91 89630 03348',
       costBreakdown: trip.cost_breakdown || initialFormDefault.costBreakdown,
       whatToBring: trip.what_to_bring || initialFormDefault.whatToBring,
       rules: trip.rules || initialFormDefault.rules,
-      isLocked: trip.is_locked,
     });
-
     setStep('PROPOSAL');
     setError('');
     setShowCreateModal(true);
   };
 
-  const handleSaveTrip = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProposal = async () => {
     const cls = schoolClasses[selectedClassIdx];
     if (!cls) return;
 
@@ -186,29 +178,27 @@ export default function TeacherTripsPage() {
     setError('');
 
     try {
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
       const payload = {
         classNumber: cls.classNumber,
         section: cls.section,
+        stream: cls.stream,
         destination: formData.destination,
         tripDate: formData.date,
         departureTime: formData.departureTime,
-        arrivalTime: formData.arrivalTime,
         returnTime: formData.returnTime,
-        cost: formData.costBreakdown.reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
+        cost: formData.costBreakdown.reduce((acc, item) => acc + (Number(item.amount) || 0), 0),
+        phone1: formData.phone1,
+        phone2: formData.phone2,
         costBreakdown: formData.costBreakdown,
         whatToBring: formData.whatToBring,
         rules: formData.rules,
-        description: formData.tripTitle,
-        emergencyInstructions: `Contact Phone 1: ${formData.phone1}, Phone 2: ${formData.phone2}`,
-        emergencyContactPhone1: formData.phone1,
-        emergencyContactPhone2: formData.phone2,
       };
 
       const url = editingTripId ? `${apiUrl}/trips/${editingTripId}` : `${apiUrl}/trips`;
-      const method = editingTripId ? 'PATCH' : 'POST';
+      const method = editingTripId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
@@ -222,31 +212,20 @@ export default function TeacherTripsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to save trip');
 
-      const targetTripId = editingTripId || data.trip?.id;
-      setCreatedTripId(targetTripId);
-
-      if (editingTripId) {
-        setCreateSuccess('Field trip updated successfully!');
-        setShowCreateModal(false);
-        fetchTrips(token as string);
-      } else {
-        // Fetch students for this class for dispatch step
-        const studentsRes = await fetch(`${apiUrl}/students`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const allStudents = await studentsRes.json();
-
-        const filtered = allStudents.filter(
-          (s: any) =>
-            String(s.current_class) === String(cls.classNumber) &&
-            s.current_section === cls.section
-        );
-
-        setClassStudents(filtered);
-        setSelectedStudentIds(filtered.map((s: any) => s.id));
-        setStep('STUDENT_SELECTION');
-        fetchTrips(token as string);
+      setCreatedTripId(data.id);
+      
+      // Fetch students for selection step
+      const studsRes = await fetch(
+        `${apiUrl}/students/by-class-section?classNumber=${cls.classNumber}&section=${cls.section}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (studsRes.ok) {
+        const studs = await studsRes.json();
+        setClassStudents(studs);
+        setSelectedStudentIds(studs.map((s: any) => s.id));
       }
+
+      setStep('STUDENT_SELECTION');
     } catch (err: any) {
       setError(err.message || 'Error saving trip');
     } finally {
@@ -262,7 +241,7 @@ export default function TeacherTripsPage() {
 
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
       const res = await fetch(`${apiUrl}/trips/${createdTripId}/dispatch-consent`, {
@@ -286,64 +265,70 @@ export default function TeacherTripsPage() {
     }
   };
 
-  const currentClass = schoolClasses[selectedClassIdx] || schoolClasses[0];
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-500 text-xs">
+        Loading Field Trips Portal...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar role="TEACHER" tenantName={user?.tenant_name} />
 
-      <div className="flex-1 pl-64">
+      <div className="flex-1 pl-0 md:pl-64 transition-all duration-300 min-w-0">
         <Topbar
           title="Field Trips & Consent Form Management"
           userName={`Welcome, ${user?.username || 'Faculty Member'}`}
           userRole="Class & Subject Faculty"
         />
 
-        <main className="px-8 py-6 space-y-6">
-          <div className="flex items-center justify-between">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div>
-              <h2 className="font-serif text-xl font-semibold text-slate-900">
+              <h2 className="font-serif text-lg sm:text-xl font-semibold text-slate-900">
                 School Trips & Consent Form Roster
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Organize educational field trips, generate parent consent forms, and track permissions.
               </p>
             </div>
 
             <button
               onClick={handleOpenNewTripModal}
-              className="bg-slate-900 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm"
+              className="bg-slate-900 text-white rounded-xl px-4 py-2.5 text-xs font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
-              <span>+ Propose New Field Trip</span>
+              <span>Propose New Field Trip</span>
             </button>
           </div>
 
           {createSuccess && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs font-semibold text-emerald-800">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>{createSuccess}</span>
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden space-y-4">
-            <div className="border-b border-slate-100 px-6 py-4">
-              <span className="text-xs font-semibold text-slate-900">
+          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden space-y-4">
+            <div className="border-b border-slate-100 p-4 sm:p-5 flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-900">
                 Your Field Trips ({trips.length})
               </span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-medium">
+              <table className="w-full text-left text-xs min-w-[650px]">
+                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-semibold">
                   <tr>
-                    <th className="px-6 py-3">Destination</th>
-                    <th className="px-6 py-3">Target Class</th>
-                    <th className="px-6 py-3">Trip Date & Schedule</th>
-                    <th className="px-6 py-3">Cost</th>
-                    <th className="px-6 py-3">Admin Approval</th>
-                    <th className="px-6 py-3">Lock Status</th>
-                    <th className="px-6 py-3 text-right">Actions</th>
+                    <th className="px-5 py-3.5">Destination</th>
+                    <th className="px-5 py-3.5">Target Class</th>
+                    <th className="px-5 py-3.5">Trip Date & Schedule</th>
+                    <th className="px-5 py-3.5">Cost</th>
+                    <th className="px-5 py-3.5">Admin Approval</th>
+                    <th className="px-5 py-3.5">Lock Status</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -356,71 +341,57 @@ export default function TeacherTripsPage() {
                   ) : (
                     trips.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-3.5 font-medium text-slate-900 flex items-center gap-2">
-                          <Compass className="h-4 w-4 text-amber-500" strokeWidth={1.75} />
+                        <td className="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                          <Compass className="h-4 w-4 text-amber-500 shrink-0" strokeWidth={1.75} />
                           <span>{item.destination}</span>
                         </td>
-                        <td className="px-6 py-3.5 text-slate-700 font-medium">
+                        <td className="px-5 py-3.5 text-slate-700 font-bold">
                           Grade {item.class_number}-{item.section}
                         </td>
-                        <td className="px-6 py-3.5 text-slate-900 font-mono">
+                        <td className="px-5 py-3.5 text-slate-900 font-mono">
                           {new Date(item.trip_date).toISOString().split('T')[0]} ({item.departure_time})
                         </td>
-                        <td className="px-6 py-3.5 font-semibold text-slate-900">
+                        <td className="px-5 py-3.5 font-bold text-slate-900">
                           {item.cost ? `₹${item.cost}` : 'Free'}
                         </td>
-                        <td className="px-6 py-3.5">
+                        <td className="px-5 py-3.5">
                           <StatusPill
                             status={item.status === 'APPROVED' ? 'active' : item.status === 'REJECTED' ? 'error' : 'pending'}
                             label={item.status}
                           />
                         </td>
-                        <td className="px-6 py-3.5">
+                        <td className="px-5 py-3.5">
                           {item.is_locked ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
                               <Lock className="h-3 w-3" /> Locked
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[11px]">Editable</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                              Unlocked
+                            </span>
                           )}
                         </td>
-                        <td className="px-6 py-3.5 text-right space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const clsIdx = schoolClasses.findIndex(
-                                (c) => c.classNumber === item.class_number && c.section === item.section
-                              );
-                              setSelectedClassIdx(clsIdx >= 0 ? clsIdx : 0);
-                              setFormData({
-                                tripTitle: item.description || 'Science Park Field Trip',
-                                destination: item.destination || '',
-                                date: item.trip_date ? new Date(item.trip_date).toISOString().split('T')[0] : '',
-                                departureTime: item.departure_time || '8:00 AM',
-                                arrivalTime: item.arrival_time || '9:30 AM',
-                                returnTime: item.return_time || '4:00 PM',
-                                phone1: item.emergency_contact_phone1 || '+91 88753 33348',
-                                phone2: item.emergency_contact_phone2 || '+91 89630 03348',
-                                costBreakdown: item.cost_breakdown || initialFormDefault.costBreakdown,
-                                whatToBring: item.what_to_bring || initialFormDefault.whatToBring,
-                                rules: item.rules || initialFormDefault.rules,
-                                isLocked: item.is_locked,
-                              });
-                              setEditingTripId(item.id);
-                              setShowCreateModal(true);
-                            }}
-                            className="border border-slate-200 text-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-slate-100 transition-colors inline-flex items-center gap-1"
-                          >
-                            <Eye className="h-3 w-3 text-blue-600" />
-                            <span>{item.is_locked ? 'Preview' : 'View / Edit'}</span>
-                          </button>
-                          <Link
-                            href={`/admin/trips/${item.id}/consent-status`}
-                            className="bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-slate-800 transition-colors inline-flex items-center gap-1"
-                          >
-                            <span>Consent Roster</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Link
+                              href={`/teacher/trips/${item.id}`}
+                              className="p-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors inline-flex items-center gap-1 font-bold text-xs"
+                              title="View Consent Tracking Roster"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </Link>
+
+                            {!item.is_locked && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditTripModal(item)}
+                                className="p-1.5 rounded-xl border border-amber-200 bg-amber-50/50 text-amber-700 hover:bg-amber-100 transition-colors"
+                                title="Edit Trip Details"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -429,174 +400,131 @@ export default function TeacherTripsPage() {
               </table>
             </div>
           </div>
-
-          {/* Create / Edit Trip Modal */}
-          {showCreateModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 overflow-y-auto">
-              <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl my-auto">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                  <h3 className="font-serif text-base font-bold text-slate-900">
-                    {editingTripId
-                      ? 'Edit Trip Details (Teacher Edit Mode)'
-                      : step === 'PROPOSAL'
-                      ? 'Propose Field Trip — Teacher Edit Mode'
-                      : 'Select Students & Dispatch Forms'}
-                  </h3>
-                  <button
-                    onClick={() => setShowCreateModal(false)}
-                    className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {error && (
-                  <div className="mt-4 rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
-                    {error}
-                  </div>
-                )}
-
-                {step === 'PROPOSAL' ? (
-                  <form onSubmit={handleSaveTrip} className="mt-4 space-y-6">
-                    {/* Class Selector */}
-                    <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-blue-900 mb-1">
-                        Select Target Class & Section *
-                      </label>
-                      <select
-                        value={selectedClassIdx}
-                        onChange={(e) => setSelectedClassIdx(Number(e.target.value))}
-                        className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900 font-semibold outline-none focus:border-blue-500"
-                      >
-                        {schoolClasses.map((cls, idx) => (
-                          <option key={idx} value={idx}>
-                            {cls.label}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="mt-1 text-[11px] text-slate-500">
-                        Student details are derived automatically per-recipient from the class roster at dispatch time.
-                      </p>
-                    </div>
-
-                    {/* Integrated Document View in Edit Mode */}
-                    <TripConsentDocumentView
-                      isEdit={true}
-                      formData={formData}
-                      onChange={(updated) => setFormData(updated)}
-                    />
-
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                      <button
-                        type="button"
-                        onClick={() => setShowCreateModal(false)}
-                        className="border border-slate-300 text-slate-600 rounded-xl px-4 py-2.5 text-xs font-medium hover:bg-slate-50"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="bg-slate-900 text-white rounded-xl px-6 py-2.5 text-xs font-bold hover:bg-slate-800 flex items-center gap-2 shadow-md"
-                      >
-                        {submitting
-                          ? 'Saving...'
-                          : editingTripId
-                          ? 'Save Changes'
-                          : 'Propose Trip & Select Students'}
-                        {!submitting && <ArrowRight className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="mt-4 space-y-4 text-xs">
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-1">
-                      <p className="font-bold text-blue-900">Select Students to Dispatch Forms</p>
-                      <p className="text-blue-700">
-                        Trip proposed successfully! Select students in {currentClass.label} who will receive this digital consent form.
-                      </p>
-                    </div>
-
-                    <div className="border border-slate-200 rounded-xl overflow-hidden h-72 overflow-y-auto bg-white">
-                      <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between sticky top-0">
-                        <span className="font-bold text-slate-800">
-                          {classStudents.length} Students in {currentClass.label}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (selectedStudentIds.length === classStudents.length) {
-                              setSelectedStudentIds([]);
-                            } else {
-                              setSelectedStudentIds(classStudents.map((s) => s.id));
-                            }
-                          }}
-                          className="text-xs font-bold text-blue-600 hover:text-blue-800"
-                        >
-                          {selectedStudentIds.length === classStudents.length
-                            ? 'Deselect All'
-                            : 'Select All'}
-                        </button>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        {classStudents.length === 0 ? (
-                          <div className="p-6 text-center text-slate-400">
-                            No active students found in this class.
-                          </div>
-                        ) : (
-                          classStudents.map((student) => (
-                            <label
-                              key={student.id}
-                              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-                                checked={selectedStudentIds.includes(student.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedStudentIds([...selectedStudentIds, student.id]);
-                                  } else {
-                                    setSelectedStudentIds(
-                                      selectedStudentIds.filter((id) => id !== student.id)
-                                    );
-                                  }
-                                }}
-                              />
-                              <div className="flex-1">
-                                <p className="font-bold text-slate-900">
-                                  {student.first_name} {student.last_name}
-                                </p>
-                                <p className="text-[11px] text-slate-500">
-                                  Roll No: {student.roll_no} • Code: {student.current_student_code}
-                                </p>
-                              </div>
-                            </label>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                      <button
-                        type="button"
-                        disabled={submitting}
-                        onClick={handleDispatchConsent}
-                        className="bg-slate-900 text-white rounded-xl px-6 py-2.5 text-xs font-bold hover:bg-slate-800 flex items-center gap-2 shadow-md"
-                      >
-                        <Send className="h-4 w-4" />
-                        {submitting
-                          ? 'Dispatching...'
-                          : `Dispatch Forms (${selectedStudentIds.length})`}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </main>
       </div>
+
+      {/* Proposal & Student Selection Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl overflow-hidden my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50">
+              <h3 className="font-semibold text-slate-900 text-sm sm:text-base">
+                {step === 'PROPOSAL' ? 'Propose New Educational Field Trip' : 'Select Target Students for Consent Dispatch'}
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {error && <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-medium">{error}</div>}
+
+              {step === 'PROPOSAL' ? (
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Target Class & Section *</label>
+                    <select
+                      value={selectedClassIdx}
+                      onChange={(e) => setSelectedClassIdx(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:border-amber-500 focus:outline-none"
+                    >
+                      {schoolClasses.map((cls, idx) => (
+                        <option key={idx} value={idx}>
+                          Grade {cls.classNumber}-{cls.section} {cls.stream ? `(${cls.stream})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <TripConsentDocumentView
+                    formData={formData}
+                    isEdit={true}
+                    onChange={(updated) => setFormData(updated)}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4 text-xs">
+                  <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span className="font-semibold text-slate-800">
+                      Roster: Grade {schoolClasses[selectedClassIdx]?.classNumber}-{schoolClasses[selectedClassIdx]?.section} ({classStudents.length} Students)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedStudentIds.length === classStudents.length) {
+                          setSelectedStudentIds([]);
+                        } else {
+                          setSelectedStudentIds(classStudents.map((s) => s.id));
+                        }
+                      }}
+                      className="text-xs text-amber-700 font-bold hover:underline"
+                    >
+                      {selectedStudentIds.length === classStudents.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto border border-slate-200 rounded-xl p-2">
+                    {classStudents.map((s) => (
+                      <label key={s.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudentIds.includes(s.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedStudentIds((prev) => [...prev, s.id]);
+                              } else {
+                                setSelectedStudentIds((prev) => prev.filter((id) => id !== s.id));
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          <span className="font-semibold text-slate-900">{s.name} ({s.studentCode})</span>
+                        </div>
+                        <span className="text-slate-400 font-mono">Roll #{s.rollNo}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+
+              {step === 'PROPOSAL' ? (
+                <button
+                  type="button"
+                  onClick={handleSaveProposal}
+                  disabled={submitting}
+                  className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? 'Saving Proposal...' : 'Continue to Student Selection &rarr;'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDispatchConsent}
+                  disabled={submitting}
+                  className="px-5 py-2.5 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Send className="h-4 w-4" />
+                  <span>{submitting ? 'Dispatching...' : 'Dispatch Consent Forms'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

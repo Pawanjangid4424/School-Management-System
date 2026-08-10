@@ -25,8 +25,8 @@ export default function TeacherAssignmentsPage() {
   const [selectedClass, setSelectedClass] = useState('ALL');
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
 
     if (!token || !storedUser) {
       router.push('/login');
@@ -74,58 +74,53 @@ export default function TeacherAssignmentsPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar with TEACHER role */}
       <Sidebar role="TEACHER" tenantName={user?.tenant_name} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 pl-64">
-        {/* Topbar */}
+      <div className="flex-1 pl-0 md:pl-64 transition-all duration-300 min-w-0">
         <Topbar
           title="Assignments & Coursework Management"
           userName={`Welcome, ${user?.username || 'Faculty Member'}`}
           userRole="Class & Subject Faculty"
         />
 
-        <main className="px-8 py-6 space-y-6">
-          {/* Header Action Row */}
-          <div className="flex items-center justify-between">
+        <main className="px-3 sm:px-6 lg:px-8 py-5 space-y-5 max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div>
-              <h2 className="font-serif text-xl font-semibold text-slate-900">
+              <h2 className="font-serif text-lg sm:text-xl font-semibold text-slate-900">
                 Created Coursework & Homework
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Manage homework tasks, track student submissions, and enter grades & feedback.
               </p>
             </div>
 
             <Link
               href="/teacher/assignments/new"
-              className="bg-slate-900 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm"
+              className="bg-slate-900 text-white rounded-xl px-4 py-2.5 text-xs font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0"
             >
               <Plus className="h-4 w-4" />
-              <span>+ Create Assignment</span>
+              <span>Create Assignment</span>
             </Link>
           </div>
 
-          {/* Assignments Grid */}
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden space-y-4">
-            <div className="border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-              <span className="text-xs font-semibold text-slate-900">
+          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden space-y-4">
+            <div className="border-b border-slate-100 p-4 sm:p-5 flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-900">
                 Active Assignments ({filteredAssignments.length})
               </span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-medium">
+              <table className="w-full text-left text-xs min-w-[650px]">
+                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 font-semibold">
                   <tr>
-                    <th className="px-6 py-3">Assignment Title</th>
-                    <th className="px-6 py-3">Target Class</th>
-                    <th className="px-6 py-3">Subject</th>
-                    <th className="px-6 py-3">Due Date</th>
-                    <th className="px-6 py-3">Max Marks</th>
-                    <th className="px-6 py-3">Submissions</th>
-                    <th className="px-6 py-3 text-right">Actions</th>
+                    <th className="px-5 py-3.5">Assignment Title</th>
+                    <th className="px-5 py-3.5">Target Class</th>
+                    <th className="px-5 py-3.5">Subject</th>
+                    <th className="px-5 py-3.5">Due Date</th>
+                    <th className="px-5 py-3.5">Max Marks</th>
+                    <th className="px-5 py-3.5">Submissions</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -138,35 +133,32 @@ export default function TeacherAssignmentsPage() {
                   ) : (
                     filteredAssignments.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-3.5 font-medium text-slate-900 flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-amber-500" strokeWidth={1.75} />
+                        <td className="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-amber-500 shrink-0" strokeWidth={1.75} />
                           <span>{item.title}</span>
                         </td>
-                        <td className="px-6 py-3.5 text-slate-700 font-medium">
+                        <td className="px-5 py-3.5 text-slate-700 font-bold">
                           Grade {item.class_number}-{item.section}
                         </td>
-                        <td className="px-6 py-3.5 text-slate-600">
+                        <td className="px-5 py-3.5 text-slate-600 font-medium">
                           {item.subject?.subject_name || 'General Coursework'}
                         </td>
-                        <td className="px-6 py-3.5 text-slate-900 font-mono">
-                          {new Date(item.due_date).toISOString().split('T')[0]}
+                        <td className="px-5 py-3.5 font-mono text-slate-700">
+                          {item.due_date ? new Date(item.due_date).toLocaleDateString() : 'No Due Date'}
                         </td>
-                        <td className="px-6 py-3.5 font-semibold text-slate-900">
-                          {item.max_marks || 'N/A'} pts
+                        <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
+                          {item.max_marks || 100} Pts
                         </td>
-                        <td className="px-6 py-3.5 text-slate-600">
-                          <StatusPill
-                            status={item.submissions?.length > 0 ? 'active' : 'pending'}
-                            label={`${item.submissions?.length || 0} Submissions`}
-                          />
+                        <td className="px-5 py-3.5">
+                          <StatusPill status="active" label={`${item._count?.submissions || 0} Submitted`} />
                         </td>
-                        <td className="px-6 py-3.5 text-right">
+                        <td className="px-5 py-3.5 text-right">
                           <Link
                             href={`/teacher/assignments/${item.id}`}
-                            className="bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-slate-800 transition-colors inline-flex items-center gap-1"
+                            className="p-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors inline-flex items-center gap-1 font-bold text-xs"
                           >
-                            <span>Grade Submissions</span>
-                            <ArrowRight className="h-3 w-3" />
+                            <span>Grade</span>
+                            <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
                         </td>
                       </tr>
