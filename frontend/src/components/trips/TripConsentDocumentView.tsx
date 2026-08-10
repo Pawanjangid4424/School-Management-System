@@ -176,10 +176,7 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                 <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                   MARUDHAR DEFENCE ACADEMY
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Higher Secondary Military & Defense School • Est. 2012
-                </p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs text-slate-500 font-medium mt-1">
                   Plot No-27, Ganesh Nagar Vistar (Ganesh Ext.), near Kanakpura Railway Station, Jhotwara, Jaipur, Rajasthan 302012.
                 </p>
               </div>
