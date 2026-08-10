@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import {
   TripsTimetableService,
   CreateTripDto,
@@ -40,6 +40,14 @@ export class TripsTimetableController {
     const tenantId = req.user.tenant_id;
     const userId = req.user.id;
     return this.service.updateTrip(tenantId, userId, tripId, body);
+  }
+
+  @Delete('trips/:id')
+  @UseGuards(RolesGuard)
+  @Roles('TEACHER', 'ADMIN')
+  async deleteTrip(@Request() req, @Param('id') tripId: string) {
+    const tenantId = req.user.tenant_id;
+    return this.service.deleteTrip(tenantId, tripId);
   }
 
   @Patch('trips/:id/review')

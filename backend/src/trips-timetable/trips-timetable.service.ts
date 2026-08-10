@@ -349,6 +349,26 @@ export class TripsTimetableService {
     };
   }
 
+  async deleteTrip(tenantId: string, tripId: string) {
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId },
+    });
+
+    if (!trip || trip.tenant_id !== tenantId) {
+      throw new NotFoundException('Trip not found');
+    }
+
+    await this.prisma.tripPermission.deleteMany({
+      where: { trip_id: tripId },
+    });
+
+    await this.prisma.trip.delete({
+      where: { id: tripId },
+    });
+
+    return { success: true, message: 'Trip deleted successfully' };
+  }
+
   async getConsentStatus(tenantId: string, tripId: string) {
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },

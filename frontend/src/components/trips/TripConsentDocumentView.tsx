@@ -180,7 +180,7 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                   Higher Secondary Military & Defense School • Est. 2012
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  NH-52, Defense Corridor, Jaipur Road, Rajasthan • Contact: +91 141 2984000
+                  Plot No-27, Ganesh Nagar Vistar (Ganesh Ext.), near Kanakpura Railway Station, Jhotwara, Jaipur, Rajasthan 302012.
                 </p>
               </div>
             </div>

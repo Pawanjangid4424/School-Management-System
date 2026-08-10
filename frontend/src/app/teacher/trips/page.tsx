@@ -12,6 +12,7 @@ import {
   Lock,
   Pencil,
   Eye,
+  Trash2,
 } from 'lucide-react';
 
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -299,6 +300,32 @@ export default function TeacherTripsPage() {
     }
   };
 
+  const handleDeleteTrip = async (tripId: string) => {
+    if (!confirm('Are you sure you want to delete this field trip proposal?')) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const res = await fetch(`${apiUrl}/trips/${tripId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        setCreateSuccess('Field trip deleted successfully.');
+        fetchTrips(token as string);
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Failed to delete trip');
+      }
+    } catch (e) {
+      setError('Error deleting field trip');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-500 text-xs">
@@ -425,8 +452,10 @@ export default function TeacherTripsPage() {
                                 type="button"
                                 onClick={() => handleTeacherManualDispatch(item.id)}
                                 className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
+                                title="Send Consent Forms to Parents"
                               >
-                                🚀 Send Consent to Parents
+                                <span>Send Consent</span>
+                                <ArrowRight className="h-3.5 w-3.5" />
                               </button>
                             )}
 
@@ -441,19 +470,28 @@ export default function TeacherTripsPage() {
                               className="p-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors inline-flex items-center gap-1 font-bold text-xs"
                               title="View Consent Tracking Roster"
                             >
-                              <Eye className="h-3.5 w-3.5" />
+                              <Eye className="h-3.5 w-3.5 text-slate-600" />
                             </Link>
 
                             {!item.is_locked && item.status !== 'DISPATCHED' && (
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditTripModal(item)}
-                                className="p-1.5 rounded-xl border border-amber-200 bg-amber-50/50 text-amber-700 hover:bg-amber-100 transition-colors"
+                                className="p-1.5 rounded-xl border border-amber-200 bg-amber-50/50 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
                                 title="Edit Trip Details"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
                             )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTrip(item.id)}
+                              className="p-1.5 rounded-xl border border-rose-200 bg-rose-50/50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                              title="Delete Trip Proposal"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>

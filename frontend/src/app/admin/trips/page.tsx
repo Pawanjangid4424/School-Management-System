@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Eye,
   Lock,
+  Trash2,
 } from 'lucide-react';
 
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -97,6 +98,29 @@ export default function AdminTripsPage() {
       }
     } catch (e) {
       console.error('Error reviewing trip', e);
+    }
+  };
+
+  const handleDeleteTrip = async (tripId: string) => {
+    if (!confirm('Are you sure you want to delete this field trip proposal?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const res = await fetch(`${apiUrl}/trips/${tripId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        setReviewSuccess('Field trip deleted successfully.');
+        fetchTrips(token || '');
+      }
+    } catch (e) {
+      console.error('Error deleting trip', e);
     }
   };
 
@@ -232,6 +256,15 @@ export default function AdminTripsPage() {
                               <ArrowRight className="h-3 w-3" />
                             </Link>
                           )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTrip(item.id)}
+                            className="p-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors ml-1.5 cursor-pointer"
+                            title="Delete Field Trip Proposal"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </td>
                       </tr>
                     ))
