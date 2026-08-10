@@ -472,4 +472,26 @@ export class StudentsService {
 
     return result;
   }
+
+  async getStudentsByClassSection(tenantId: string, classNumber: number | string, section: string) {
+    const students = await this.prisma.studentProfile.findMany({
+      where: {
+        user: { tenant_id: tenantId },
+        current_class: String(classNumber),
+        current_section: section.toUpperCase(),
+        status: 'ACTIVE',
+      },
+      orderBy: { roll_no: 'asc' },
+    });
+
+    return students.map((s) => ({
+      id: s.id,
+      name: `${s.first_name} ${s.last_name}`,
+      studentCode: s.current_student_code,
+      rollNo: s.roll_no,
+      classNumber: s.current_class,
+      section: s.current_section,
+      mobileNo: s.mobile_no,
+    }));
+  }
 }

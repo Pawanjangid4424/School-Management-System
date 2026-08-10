@@ -34,6 +34,16 @@ export class StudentsController {
     return this.studentsService.findAll(tenantId);
   }
 
+  @Get('by-class-section')
+  async getStudentsByClassSection(
+    @Request() req,
+    @Query('classNumber') classNumber: string,
+    @Query('section') section: string,
+  ) {
+    const tenantId = req.user.tenant_id;
+    return this.studentsService.getStudentsByClassSection(tenantId, classNumber, section);
+  }
+
   @Get('active-class-sections')
   async getActiveClassSections(@Request() req) {
     const tenantId = req.user.tenant_id;
