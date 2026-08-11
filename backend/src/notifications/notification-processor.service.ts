@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ResendEmailDispatchService } from './resend-email-dispatch.service';
+import { BrevoEmailDispatchService } from './brevo-email-dispatch.service';
 
 @Injectable()
 export class NotificationProcessorService {
@@ -8,7 +8,7 @@ export class NotificationProcessorService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly resendDispatch: ResendEmailDispatchService,
+    private readonly resendDispatch: BrevoEmailDispatchService,
   ) {}
 
   /**

@@ -3,9 +3,9 @@ import { NotificationProcessorService } from './notification-processor.service';
 import { BrevoEmailDispatchService } from './brevo-email-dispatch.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
+describe('NotificationProcessorService (Resend/Brevo Dispatch & Retry Engine)', () => {
   let processor: NotificationProcessorService;
-  let brevoDispatch: jest.Mocked<Partial<BrevoEmailDispatchService>>;
+  let resendDispatch: jest.Mocked<Partial<BrevoEmailDispatchService>>;
   let prismaService: jest.Mocked<Partial<PrismaService>>;
 
   const mockTripPerm = {
@@ -37,7 +37,7 @@ describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
   };
 
   beforeEach(async () => {
-    brevoDispatch = {
+    resendDispatch = {
       sendTransactionalEmail: jest.fn().mockResolvedValue({ messageId: 'brevo-msg-123' }),
     };
 
@@ -64,7 +64,7 @@ describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationProcessorService,
-        { provide: BrevoEmailDispatchService, useValue: brevoDispatch },
+        { provide: BrevoEmailDispatchService, useValue: resendDispatch },
         { provide: PrismaService, useValue: prismaService },
       ],
     }).compile();
@@ -88,7 +88,7 @@ describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
 
       const result = await processor.processPendingNotifications();
 
-      expect(brevoDispatch.sendTransactionalEmail).toHaveBeenCalledTimes(1);
+      expect(resendDispatch.sendTransactionalEmail).toHaveBeenCalledTimes(1);
       expect(prismaService.notificationQueueItem.update).toHaveBeenCalledWith({
         where: { id: 'queue-item-1' },
         data: expect.objectContaining({
@@ -100,7 +100,7 @@ describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
     });
 
     it('should increment retries count and mark FAILED when max 3 attempts are reached on error', async () => {
-      (brevoDispatch.sendTransactionalEmail as jest.Mock).mockRejectedValueOnce(new Error('Brevo API 500 Error'));
+      (resendDispatch.sendTransactionalEmail as jest.Mock).mockRejectedValueOnce(new Error('Brevo API 500 Error'));
 
       const mockFailingItem = {
         id: 'queue-item-2',
@@ -134,9 +134,9 @@ describe('NotificationProcessorService (Brevo Dispatch & Retry Engine)', () => {
         related_entity_id: 'perm-1',
       });
 
-      expect(formatted.subject).toContain('Consent needed: Science Observatory');
+      expect(formatted.subject).toContain('[ACTION REQUIRED]');
       expect(formatted.htmlContent).toContain('Science Observatory');
-      expect(formatted.htmlContent).toContain('/parent/trips');
+      expect(formatted.htmlContent).toContain('/consent/');
     });
 
     it('should format ASSIGNMENT_CREATED template correctly', async () => {

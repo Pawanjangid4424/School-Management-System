@@ -84,8 +84,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-screen bg-white flex p-3 sm:p-4 gap-4 sm:gap-6 overflow-hidden text-slate-800 font-sans selection:bg-red-500 selection:text-white">
+    <>
       <Toaster position="top-center" />
+      <div className="h-[100dvh] w-full bg-white flex p-0 md:p-4 md:gap-6 overflow-hidden text-slate-800 font-sans selection:bg-red-500 selection:text-white">
 
       {/* Left Hero Card Frame */}
       <div className="hidden md:flex md:flex-1 relative h-full rounded-[24px] overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs flex-col justify-between p-4 group">
@@ -125,7 +126,7 @@ export default function LoginPage() {
 
       {/* Right Login Panel */}
       <aside
-        className="w-full md:w-[430px] shrink-0 h-full bg-white flex flex-col justify-between py-2 px-4 sm:px-10 overflow-y-auto mx-auto"
+        className="w-full md:w-[430px] h-full bg-white flex flex-col justify-between py-6 px-6 sm:px-10 md:py-2 md:px-10 overflow-y-auto overflow-x-hidden mx-auto"
         style={{
           boxSizing: 'border-box',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
@@ -264,12 +265,13 @@ export default function LoginPage() {
         </div>
 
         {/* Browser Compatibility Footer */}
-        <div className="pt-3 border-t border-slate-100 text-center text-[10.5px] text-slate-400 shrink-0">
+        <div className="pt-3 border-t border-slate-100 text-center text-[10.5px] text-slate-400 shrink-0 w-full whitespace-normal break-words px-2">
           <span>Site Compatible - <span className="text-slate-600 font-medium">Google Chrome 70+</span> • <span className="text-slate-600 font-medium">Firefox 65+</span> • <span className="text-slate-600 font-medium">Edge 89+</span></span>
         </div>
       </aside>
 
       <ForgotPasswordModal isOpen={isForgotOpen} onClose={() => setIsForgotOpen(false)} />
     </div>
+    </>
   );
 }
