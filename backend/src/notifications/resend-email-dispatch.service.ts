@@ -93,14 +93,13 @@ export class ResendEmailDispatchService {
   }
 
   /**
-   * Sends transactional SMS via Brevo REST API (or Fast2SMS fallback).
+   * Sends transactional SMS via Brevo REST API.
    * Endpoint: POST https://api.brevo.com/v3/transactionalSMS/sms
    */
   async sendTransactionalSMS(payload: SendSmsPayload): Promise<{ messageId?: string }> {
     const bk1 = 'xkeysib-78589a3ddbb3085dacc6fd28219b2b841c55bf91dd2635f12441728a757205cc-';
     const bk2 = 'Vm5lSb1YqWsHc0b7';
     const brevoApiKey = process.env.BREVO_API_KEY || `${bk1}${bk2}`;
-    const fast2smsKey = process.env.FAST2SMS_API_KEY || 'jLTqBGxZgReivm54Kh0bdc8SA6aNC7lFtEOMWJ1DuYVH3PzsywxodE2MvXtcUrZa7Jb3Bq0PNSzkCGuK';
 
     let formattedPhone = payload.toPhone ? payload.toPhone.trim() : '';
     let digits = formattedPhone.replace(/\D/g, '');
@@ -112,7 +111,6 @@ export class ResendEmailDispatchService {
       return {};
     }
 
-    // 1. Try Brevo Transactional SMS API
     if (brevoApiKey) {
       try {
         this.logger.log(`Dispatching Transactional SMS via Brevo API to ${cleanPhone}...`);
@@ -136,39 +134,11 @@ export class ResendEmailDispatchService {
           return { messageId: data.messageId };
         } else {
           this.logger.warn(`Brevo SMS API Response: ${JSON.stringify(data)}`);
+          throw new Error(data.message || 'Unknown Brevo SMS Error');
         }
       } catch (error: any) {
         this.logger.error(`Brevo SMS Dispatch Failed to ${cleanPhone}: ${error.message}`);
       }
-    }
-
-    // 2. Fast2SMS Fallback
-    try {
-      const tenDigits = digits.slice(-10);
-      this.logger.log(`Dispatching SMS via Fast2SMS to +91${tenDigits}...`);
-      const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-        method: 'POST',
-        headers: {
-          'authorization': fast2smsKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          route: 'q',
-          message: payload.content,
-          numbers: tenDigits,
-          flash: 0,
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok && data.return) {
-        this.logger.log(`SMS delivered via Fast2SMS to +91${tenDigits} (Request ID: ${data.request_id})`);
-        return { messageId: data.request_id || `fast2sms-${Date.now()}` };
-      } else {
-        this.logger.warn(`Fast2SMS Response: ${JSON.stringify(data)}`);
-      }
-    } catch (error: any) {
-      this.logger.error(`Fast2SMS Dispatch Exception for ${cleanPhone}: ${error.message}`);
     }
 
     return { messageId: `sms-queued-${Date.now()}` };
