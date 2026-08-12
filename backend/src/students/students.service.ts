@@ -334,40 +334,78 @@ export class StudentsService {
       maritalStatus, nationality, bloodGroup, religion, category, subCaste, physicallyDisabled,
       aadharNo, passportNo, visaNumber, admissionType, admissionThrough,
       permanentAddress, localAddress, localGuardianAddress, photoUrl, signatureUrl,
+      classNumber, section, stream, rollNumber, admissionYear,
+      fatherDetails, motherDetails, localGuardianDetails
     } = dto;
 
-    const student = await this.prisma.studentProfile.update({
-      where: { id, tenant_id: tenantId },
-      data: {
-        first_name: firstName,
-        middle_name: middleName,
-        last_name: lastName,
-        mobile_no: mobileNo,
-        alternate_mobile_no: alternateMobileNo,
-        date_of_birth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-        birth_place: birthPlace,
-        gender: gender,
-        marital_status: maritalStatus,
-        nationality: nationality,
-        blood_group: bloodGroup,
-        religion: religion,
-        category: category,
-        sub_caste: subCaste,
-        physically_disabled: physicallyDisabled,
-        aadhar_no: aadharNo,
-        passport_no: passportNo,
-        visa_number: visaNumber,
-        admission_type: admissionType,
-        admission_through: admissionThrough,
-        permanent_address: permanentAddress as any,
-        local_address: localAddress as any,
-        local_guardian_address: localGuardianAddress as any,
-        photo_url: photoUrl,
-        signature_url: signatureUrl,
-      }
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const student = await tx.studentProfile.update({
+        where: { id, tenant_id: tenantId },
+        data: {
+          first_name: firstName,
+          middle_name: middleName,
+          last_name: lastName,
+          mobile_no: mobileNo,
+          alternate_mobile_no: alternateMobileNo,
+          date_of_birth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+          birth_place: birthPlace,
+          gender: gender,
+          marital_status: maritalStatus,
+          nationality: nationality,
+          blood_group: bloodGroup,
+          religion: religion,
+          category: category,
+          sub_caste: subCaste,
+          physically_disabled: physicallyDisabled,
+          aadhar_no: aadharNo,
+          passport_no: passportNo,
+          visa_number: visaNumber,
+          admission_type: admissionType,
+          admission_through: admissionThrough,
+          permanent_address: permanentAddress as any,
+          local_address: localAddress as any,
+          local_guardian_address: localGuardianAddress as any,
+          photo_url: photoUrl,
+          signature_url: signatureUrl,
+          current_class: classNumber ? String(classNumber) : undefined,
+          current_section: section ? section.toUpperCase() : undefined,
+          stream: stream ? stream.toUpperCase() : undefined,
+          roll_no: rollNumber ? Number(rollNumber) : undefined,
+          admission_year: admissionYear ? Number(admissionYear) : undefined,
+        }
+      });
 
-    return student;
+      const updateGuardian = async (details: any, relation: string) => {
+        if (!details || (!details.firstName && !details.lastName && !details.phone)) return;
+        const link = await tx.studentGuardianLink.findFirst({
+          where: { student_profile_id: id, guardian_profile: { relation_to_student: relation } },
+          include: { guardian_profile: true }
+        });
+
+        if (link) {
+          await tx.guardianProfile.update({
+            where: { id: link.guardian_profile_id },
+            data: {
+              full_name: details.fullName || `${details.firstName || ''} ${details.lastName || ''}`.trim(),
+              first_name: details.firstName,
+              last_name: details.lastName,
+              phone: details.phone,
+              email: details.email,
+              occupation: details.occupation,
+              qualification: details.qualification,
+              office_phone: details.officePhone,
+              annual_income: details.annualIncome,
+            }
+          });
+        }
+      };
+
+      await updateGuardian(fatherDetails, 'FATHER');
+      await updateGuardian(motherDetails, 'MOTHER');
+      await updateGuardian(localGuardianDetails, 'GUARDIAN');
+
+      return student;
+    });
   }
 
   async suspendStudent(id: string, tenantId: string, durationDays: number, reason: string) {
