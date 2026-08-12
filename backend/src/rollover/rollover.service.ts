@@ -57,6 +57,7 @@ export class RolloverService {
           rollNumber: student.roll_no,
           tenantId,
           firstName: student.first_name,
+          section: student.current_section,
         });
       }
 
@@ -155,6 +156,7 @@ export class RolloverService {
           rollNumber: item.targetRollNo,
           tenantId,
           firstName: student.first_name,
+          section: item.targetSection,
         });
 
         const oldCode = student.current_student_code;
