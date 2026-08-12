@@ -8,6 +8,7 @@ export interface GenerateStudentCodeInput {
   rollNumber: number;
   tenantId: string;
   firstName: string;
+  section: string;
 }
 
 export interface StudentCodeResult {
@@ -27,7 +28,7 @@ export class StudentCodeGeneratorService {
    * Email: username@domain
    */
   async generate(input: GenerateStudentCodeInput): Promise<StudentCodeResult> {
-    const { admissionYear, classNumber, stream, rollNumber, tenantId, firstName } = input;
+    const { admissionYear, classNumber, stream, rollNumber, tenantId, firstName, section } = input;
 
     // 1. Validation
     if (!admissionYear || admissionYear < 1900 || admissionYear > 2100) {
@@ -73,10 +74,11 @@ export class StudentCodeGeneratorService {
     const yy = String(admissionYear).slice(-2);
     const schoolCode = tenant.school_code.toUpperCase();
     const paddedClass = String(classNumber).padStart(2, '0');
+    const upperSection = section ? section.toUpperCase() : '';
     const paddedRoll = String(rollNumber).padStart(4, '0');
 
-    // Code: [YY][SCHOOLCODE][CLASS][STREAM?][ROLL]
-    const studentCode = `${yy}${schoolCode}${paddedClass}${streamCode}${paddedRoll}`;
+    // Code: [YY][SCHOOLCODE][CLASS][SECTION][STREAM?][ROLL]
+    const studentCode = `${yy}${schoolCode}${paddedClass}${upperSection}${streamCode}${paddedRoll}`;
 
     // 4. Clean first name for username/email
     const cleanFirstName = firstName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');

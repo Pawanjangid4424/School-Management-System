@@ -52,6 +52,7 @@ export class StudentsService {
       rollNumber,
       tenantId,
       firstName,
+      section,
     });
 
     // Generate permanent admission number e.g. ADM-2026-XXXX
@@ -117,40 +118,52 @@ export class StudentsService {
           },
         });
 
-        // Helper to create guardians
         const createGuardian = async (details: any, relation: string) => {
           if (!details || (!details.firstName && !details.fullName)) return null;
           
-          // Use provided email or generate a placeholder for DB constraint if needed (not needed for Guardian)
-          const guardianUser = await tx.user.create({
-            data: {
-              tenant_id: tenantId,
-              role: 'PARENT',
-              current_email: details.email || `parent_${Date.now()}_${Math.floor(Math.random()*1000)}@placeholder.com`,
-              current_username: `parent_${Date.now()}_${Math.floor(Math.random()*1000)}`,
-              password_hash: defaultPasswordHash,
-              status: 'ACTIVE',
-            }
-          });
+          let guardianUser;
+          let guardian;
 
-          const guardian = await tx.guardianProfile.create({
-            data: {
-              user_id: guardianUser.id,
-              tenant_id: tenantId,
-              full_name: details.fullName || `${details.firstName || ''} ${details.lastName || ''}`.trim(),
-              first_name: details.firstName,
-              middle_name: details.middleName,
-              last_name: details.lastName,
-              phone: details.phone,
-              alternate_phone: details.alternatePhone,
-              email: details.email,
-              occupation: details.occupation,
-              qualification: details.qualification,
-              office_phone: details.officePhone,
-              annual_income: details.annualIncome,
-              relation_to_student: relation,
+          if (details.email) {
+            guardianUser = await tx.user.findUnique({ where: { current_email: details.email } });
+            if (guardianUser) {
+              guardian = await tx.guardianProfile.findFirst({ where: { user_id: guardianUser.id } });
             }
-          });
+          }
+
+          if (!guardianUser) {
+            guardianUser = await tx.user.create({
+              data: {
+                tenant_id: tenantId,
+                role: 'PARENT',
+                current_email: details.email || `parent_${Date.now()}_${Math.floor(Math.random()*1000)}@placeholder.com`,
+                current_username: `parent_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+                password_hash: defaultPasswordHash,
+                status: 'ACTIVE',
+              }
+            });
+          }
+
+          if (!guardian) {
+            guardian = await tx.guardianProfile.create({
+              data: {
+                user_id: guardianUser.id,
+                tenant_id: tenantId,
+                full_name: details.fullName || `${details.firstName || ''} ${details.lastName || ''}`.trim(),
+                first_name: details.firstName,
+                middle_name: details.middleName,
+                last_name: details.lastName,
+                phone: details.phone,
+                alternate_phone: details.alternatePhone,
+                email: details.email,
+                occupation: details.occupation,
+                qualification: details.qualification,
+                office_phone: details.officePhone,
+                annual_income: details.annualIncome,
+                relation_to_student: relation,
+              }
+            });
+          }
 
           await tx.studentGuardianLink.create({
             data: {
@@ -178,7 +191,8 @@ export class StudentsService {
       });
     } catch (error) {
       if (error.code === 'P2002') {
-        throw new BadRequestException('A student with this roll number already exists in this class/section.');
+        const target = error.meta?.target || 'unknown field';
+        throw new BadRequestException(`A record with this ${target} already exists. If it is a parent email, please use a different email or leave it blank.`);
       }
       throw error;
     }
