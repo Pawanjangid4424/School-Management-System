@@ -11,7 +11,7 @@ export class BrevoEmailDispatchService extends ResendEmailDispatchService {
     const brevoApiKey = process.env.BREVO_API_KEY || `${bk1}${bk2}`;
     
     // We will use the user's email as the verified sender in Brevo
-    const senderEmail = 'pawanjangid7799@gmail.com'; 
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || 'pawanjangid77734@gmail.com'; 
     const schoolName = payload.schoolName || 'School Management ERP';
 
     try {
