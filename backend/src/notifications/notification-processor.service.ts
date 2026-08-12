@@ -70,16 +70,31 @@ export class NotificationProcessorService {
           try {
             const perm = await this.prisma.tripPermission.findUnique({
               where: { id: item.related_entity_id },
-              include: { trip: true, student_profile: true },
+              include: { 
+                trip: true, 
+                student_profile: {
+                  include: {
+                    guardian_links: {
+                      include: { guardian_profile: true }
+                    }
+                  }
+                } 
+              },
             });
-            if (perm) {
-              const mobileNo = perm.student_profile?.mobile_no;
+            if (perm && perm.student_profile) {
+              let mobileNo = perm.student_profile.mobile_no;
+              
+              if (!mobileNo && perm.student_profile.guardian_links?.length > 0) {
+                const primary = perm.student_profile.guardian_links[0].guardian_profile;
+                mobileNo = primary?.phone || primary?.alternate_phone;
+              }
+
               const dest = perm.trip?.destination || 'Field Trip';
               const baseUrl = process.env.FRONTEND_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://school-management-system-iota-flax.vercel.app';
-              const smsText = `Action Required: Field Trip Parent Consent for ${perm.student_profile?.first_name} ${perm.student_profile?.last_name} (${dest}). Review & sign: ${baseUrl}/consent/${perm.id}`;
+              const smsText = `Action Required: Field Trip Parent Consent for ${perm.student_profile.first_name} ${perm.student_profile.last_name} (${dest}). Review & sign: ${baseUrl}/consent/${perm.id}`;
               
               await this.resendDispatch.sendTransactionalSMS({
-                toPhone: mobileNo || '+91887533348',
+                toPhone: mobileNo || '',
                 content: smsText,
               });
             }
