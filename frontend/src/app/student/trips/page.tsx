@@ -137,6 +137,7 @@ export default function StudentTripsPage() {
                     permissionStatus={item.permissionStatus}
                     respondedByName={item.respondedByName || ''}
                     signatureId={item.signatureId || ''}
+                    signatureData={item.signatureData || ''}
                     respondedAt={item.respondedAt || ''}
                     isStudentView={false}
                     onRespond={(status, name, sigData) => handleRespondConsent(item.permissionId, status, name, sigData)}

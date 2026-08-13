@@ -123,6 +123,7 @@ export default function PublicConsentPage() {
           permissionStatus={data.permissionStatus}
           respondedByName={data.respondedByName}
           signatureId={data.signatureId}
+          signatureData={data.signatureData}
           respondedAt={data.respondedAt}
           isStudentView={false}
           onRespond={handleRespond}
