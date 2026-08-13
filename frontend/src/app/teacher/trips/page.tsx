@@ -259,6 +259,9 @@ export default function TeacherTripsPage() {
         setCreateSuccess(`Trip proposed with ${selectedStudentIds.length} target students! Submitted for Admin Approval. (Emails/SMS will be sent ONLY after Admin approves and you click "Dispatch Consent").`);
         setShowCreateModal(false);
         fetchTrips(token as string);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Failed to save student roster for proposal.');
       }
     } catch (err: any) {
       setError('Failed to save student roster for proposal');
