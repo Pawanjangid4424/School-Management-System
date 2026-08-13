@@ -268,4 +268,26 @@ export class StudentPortalService {
       orderBy: { created_at: 'desc' },
     });
   }
+
+  async getStudentTrips(tenantId: string, userId: string) {
+    const student = await this.resolveStudentProfile(tenantId, userId);
+
+    const permissions = await this.prisma.tripPermission.findMany({
+      where: { student_profile_id: student.id },
+      include: {
+        trip: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return permissions.map(p => ({
+      permissionId: p.id,
+      permissionStatus: p.permission_status,
+      respondedByName: p.responded_by_name || '',
+      signatureId: p.signature_id || '',
+      signatureData: p.signature_data || '',
+      respondedAt: p.responded_at ? p.responded_at.toISOString() : null,
+      trip: p.trip,
+    }));
+  }
 }

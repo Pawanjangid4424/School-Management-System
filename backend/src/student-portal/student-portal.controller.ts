@@ -50,4 +50,11 @@ export class StudentPortalController {
       body.reason,
     );
   }
+
+  @Get('trips/self')
+  async getStudentTrips(@Request() req) {
+    const tenantId = req.user.tenant_id;
+    const userId = req.user.userId || req.user.id;
+    return this.studentPortalService.getStudentTrips(tenantId, userId);
+  }
 }
