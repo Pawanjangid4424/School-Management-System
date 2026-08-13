@@ -589,11 +589,11 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                   ) : (
                     <XCircle className="h-6 w-6 text-rose-600 shrink-0" />
                   )}
-                  <div className="flex-1">
+                  <div className="flex-1 overflow-hidden">
                     <p className="text-sm font-bold">
                       {permissionStatus === 'GRANTED' ? 'Consent Permission Granted' : 'Consent Permission Declined'}
                     </p>
-                    <div className="mt-3 flex gap-4 items-start">
+                    <div className="mt-3 flex flex-col sm:flex-row gap-4 sm:items-start">
                       {signatureData ? (
                         <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0 flex flex-col items-center min-w-[140px]">
                            <img src={signatureData} alt="Signature" className="h-12 object-contain" />
@@ -607,13 +607,13 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                            <span className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider">Auto-Generated</span>
                         </div>
                       )}
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs opacity-80 mt-1">
                           Signed by <strong>{respondedByName || student.name}</strong> • Recorded on{' '}
                           {respondedAt ? new Date(respondedAt).toLocaleString() : 'recently'}
                         </p>
                         {signatureId && (
-                          <p className="text-[11px] font-mono mt-1 opacity-90 text-slate-600">
+                          <p className="text-[11px] font-mono mt-1 opacity-90 text-slate-600 break-all">
                             Signature verification hash: {signatureId}
                           </p>
                         )}
