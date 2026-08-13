@@ -576,12 +576,16 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                     </p>
                     <div className="mt-3 flex gap-4 items-start">
                       {signatureData ? (
-                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0">
-                           <img src={signatureData} alt="Signature" className="h-14 object-contain" />
+                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0 flex flex-col items-center min-w-[140px]">
+                           <img src={signatureData} alt="Signature" className="h-12 object-contain" />
+                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1 border-t border-slate-100 pt-1 w-full text-center">
+                             {respondedByName || student.name}
+                           </span>
                         </div>
                       ) : (
-                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0 flex items-center justify-center h-16 px-4">
+                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0 flex flex-col items-center justify-center h-16 px-4 min-w-[120px]">
                            <span className="font-cursive text-xl text-slate-700">{respondedByName || student.name}</span>
+                           <span className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider">Auto-Generated</span>
                         </div>
                       )}
                       <div>
@@ -614,9 +618,21 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                   <button
                     disabled={!signatureNameInput.trim() || submitting}
                     onClick={() => handleParentSubmit('GRANTED')}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40 transition-all duration-200"
                   >
-                    <CheckCircle2 className="h-4 w-4" /> SAVE & SUBMIT FINAL APPROVAL
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                      </span>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" /> SAVE & SUBMIT FINAL APPROVAL
+                      </>
+                    )}
                   </button>
                   <button
                     disabled={!signatureNameInput.trim() || submitting}
