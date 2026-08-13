@@ -151,7 +151,26 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
       setSubmitting(true);
       let sigData = undefined;
       if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-        sigData = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+        try {
+          const originalCanvas = sigCanvas.current.getCanvas(); // Avoid getTrimmedCanvas due to high-DPI bugs on mobile
+          const destCanvas = document.createElement('canvas');
+          const maxW = 500;
+          const scale = Math.min(1, maxW / originalCanvas.width);
+          destCanvas.width = originalCanvas.width * scale;
+          destCanvas.height = originalCanvas.height * scale;
+          const ctx = destCanvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#ffffff'; // White background for JPEG
+            ctx.fillRect(0, 0, destCanvas.width, destCanvas.height);
+            ctx.drawImage(originalCanvas, 0, 0, destCanvas.width, destCanvas.height);
+            sigData = destCanvas.toDataURL('image/jpeg', 0.7);
+          } else {
+            sigData = originalCanvas.toDataURL('image/png'); // Fallback
+          }
+        } catch (e) {
+          console.error('Failed to process signature', e);
+          sigData = sigCanvas.current.getCanvas().toDataURL('image/png'); // Safe fallback
+        }
       }
       try {
         await onRespond(status, signatureNameInput, sigData);
