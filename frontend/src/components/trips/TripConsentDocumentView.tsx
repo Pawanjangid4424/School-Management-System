@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   MapPin,
   Calendar,
@@ -20,6 +20,7 @@ import {
   Eye,
   Lock,
 } from 'lucide-react';
+import SignatureCanvas from 'react-signature-canvas';
 import logoAsset from '@/assets/marudhar-logo.png';
 
 export interface CostItem {
@@ -57,8 +58,9 @@ export interface TripConsentDocumentViewProps {
   permissionStatus?: 'PENDING' | 'GRANTED' | 'DENIED';
   respondedByName?: string;
   signatureId?: string;
+  signatureData?: string;
   respondedAt?: string;
-  onRespond?: (status: 'GRANTED' | 'DENIED', signatureName: string) => Promise<void>;
+  onRespond?: (status: 'GRANTED' | 'DENIED', name: string, signatureData?: string) => Promise<void>;
   isStudentView?: boolean;
 }
 
@@ -82,12 +84,14 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
   permissionStatus = 'PENDING',
   respondedByName = '',
   signatureId = '',
+  signatureData = '',
   respondedAt = '',
   onRespond,
   isStudentView = false,
 }) => {
   const [signatureNameInput, setSignatureNameInput] = useState(respondedByName || '');
   const [submitting, setSubmitting] = useState(false);
+  const sigCanvas = useRef<any>(null);
 
   const updateField = (field: keyof TripFormData, value: any) => {
     if (onChange) {
@@ -143,12 +147,23 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
   const totalCost = formData.costBreakdown.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   const handleParentSubmit = async (status: 'GRANTED' | 'DENIED') => {
-    if (!signatureNameInput.trim() || !onRespond) return;
-    setSubmitting(true);
-    try {
-      await onRespond(status, signatureNameInput.trim());
-    } finally {
-      setSubmitting(false);
+    if (onRespond) {
+      setSubmitting(true);
+      let sigData = undefined;
+      if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+        sigData = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+      }
+      try {
+        await onRespond(status, signatureNameInput, sigData);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
+  const handleClearSignature = () => {
+    if (sigCanvas.current) {
+      sigCanvas.current.clear();
     }
   };
 
@@ -510,15 +525,26 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                 {permissionStatus === 'PENDING' && !isStudentView && (
                   <div className="mt-4 space-y-3">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-amber-900">
-                      Type Your Full Legal Name to Sign *
+                      STEP 2: Capture Parent / Guardian Signature
                     </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Rajesh Kumar Sharma"
-                      value={signatureNameInput}
-                      onChange={(e) => setSignatureNameInput(e.target.value)}
-                      className="w-full rounded-lg border border-amber-400 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
-                    />
+                    <div className="border border-slate-300 rounded-lg bg-white overflow-hidden touch-none relative">
+                       <span className="absolute top-2 left-2 text-xs text-slate-400 select-none">Interactive Signature Canvas</span>
+                       <SignatureCanvas
+                          ref={sigCanvas}
+                          penColor="black"
+                          canvasProps={{ className: "w-full h-40 cursor-crosshair" }}
+                       />
+                       <div className="absolute bottom-6 left-4 right-4 border-b-2 border-dashed border-slate-300 pointer-events-none opacity-50"></div>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Type Full Name (For records)"
+                        value={signatureNameInput}
+                        onChange={(e) => setSignatureNameInput(e.target.value)}
+                        className="w-full rounded-lg border border-amber-400 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -544,19 +570,32 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
                   ) : (
                     <XCircle className="h-6 w-6 text-rose-600 shrink-0" />
                   )}
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-bold">
                       {permissionStatus === 'GRANTED' ? 'Consent Permission Granted' : 'Consent Permission Declined'}
                     </p>
-                    <p className="text-xs opacity-80">
-                      Signed by <strong>{respondedByName || student.name}</strong> • Recorded on{' '}
-                      {respondedAt ? new Date(respondedAt).toLocaleString() : 'recently'}
-                    </p>
-                    {signatureId && (
-                      <p className="text-[11px] font-mono mt-0.5 opacity-90">
-                        Signature verification hash: {signatureId}
-                      </p>
-                    )}
+                    <div className="mt-3 flex gap-4 items-start">
+                      {signatureData ? (
+                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0">
+                           <img src={signatureData} alt="Signature" className="h-14 object-contain" />
+                        </div>
+                      ) : (
+                        <div className="border border-slate-200 bg-white rounded-lg p-2 shrink-0 flex items-center justify-center h-16 px-4">
+                           <span className="font-cursive text-xl text-slate-700">{respondedByName || student.name}</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs opacity-80 mt-1">
+                          Signed by <strong>{respondedByName || student.name}</strong> • Recorded on{' '}
+                          {respondedAt ? new Date(respondedAt).toLocaleString() : 'recently'}
+                        </p>
+                        {signatureId && (
+                          <p className="text-[11px] font-mono mt-1 opacity-90 text-slate-600">
+                            Signature verification hash: {signatureId}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : isStudentView ? (
@@ -566,11 +605,18 @@ export const TripConsentDocumentView: React.FC<TripConsentDocumentViewProps> = (
               ) : (
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <button
+                    onClick={handleClearSignature}
+                    disabled={submitting}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" /> Clear Pad
+                  </button>
+                  <button
                     disabled={!signatureNameInput.trim() || submitting}
                     onClick={() => handleParentSubmit('GRANTED')}
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <CheckCircle2 className="h-4 w-4" /> Approve & Sign Digitally
+                    <CheckCircle2 className="h-4 w-4" /> SAVE & SUBMIT FINAL APPROVAL
                   </button>
                   <button
                     disabled={!signatureNameInput.trim() || submitting}

@@ -39,13 +39,13 @@ export default function PublicConsentPage() {
     fetchConsentData();
   }, [permissionId]);
 
-  const handleRespond = async (status: 'GRANTED' | 'DENIED', name: string) => {
+  const handleRespond = async (status: 'GRANTED' | 'DENIED', name: string, signatureData?: string) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const res = await fetch(`${apiUrl}/public/trips/permission/${permissionId}/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, respondedByName: name }),
+        body: JSON.stringify({ status, respondedByName: name, signatureData }),
       });
 
       if (res.ok) {

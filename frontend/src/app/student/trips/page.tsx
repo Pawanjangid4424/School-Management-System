@@ -52,7 +52,7 @@ export default function StudentTripsPage() {
     }
   };
 
-  const handleRespondConsent = async (permissionId: string, status: 'GRANTED' | 'DENIED', name: string) => {
+  const handleRespondConsent = async (permissionId: string, status: 'GRANTED' | 'DENIED', name: string, signatureData?: string) => {
     try {
       const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -63,7 +63,7 @@ export default function StudentTripsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status, respondedByName: name }),
+        body: JSON.stringify({ status, respondedByName: name, signatureData }),
       });
 
       if (res.ok) {
@@ -139,7 +139,7 @@ export default function StudentTripsPage() {
                     signatureId={item.signatureId || ''}
                     respondedAt={item.respondedAt || ''}
                     isStudentView={false}
-                    onRespond={(status, name) => handleRespondConsent(item.permissionId, status, name)}
+                    onRespond={(status, name, sigData) => handleRespondConsent(item.permissionId, status, name, sigData)}
                   />
                 </div>
               );

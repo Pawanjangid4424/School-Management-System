@@ -447,6 +447,7 @@ export class TripsTimetableService {
     status: 'GRANTED' | 'DENIED',
     respondedByName: string,
     signatureId?: string,
+    signatureData?: string,
   ) {
     const perm = await this.prisma.tripPermission.findUnique({
       where: { id: permissionId },
@@ -466,6 +467,7 @@ export class TripsTimetableService {
         responded_at: new Date(),
         responded_by_name: respondedByName.trim(),
         signature_id: genSignature,
+        signature_data: signatureData || null,
       },
       include: {
         trip: true,

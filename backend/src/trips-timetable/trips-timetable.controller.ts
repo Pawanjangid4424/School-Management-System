@@ -96,9 +96,9 @@ export class TripsTimetableController {
   @Post('trips/permission/:permissionId/respond')
   async respondToTripPermission(
     @Param('permissionId') permissionId: string,
-    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string },
+    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string; signatureData?: string },
   ) {
-    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId);
+    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId, body.signatureData);
   }
 
   // --- TIMETABLE & SCHEDULE MANAGEMENT ---
@@ -135,8 +135,8 @@ export class PublicTripsPermissionController {
   @Post(':permissionId/respond')
   async respondPublic(
     @Param('permissionId') permissionId: string,
-    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string },
+    @Body() body: { status: 'GRANTED' | 'DENIED'; respondedByName: string; signatureId?: string; signatureData?: string },
   ) {
-    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId);
+    return this.service.respondToTripPermission(permissionId, body.status, body.respondedByName, body.signatureId, body.signatureData);
   }
 }

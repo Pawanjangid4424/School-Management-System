@@ -466,6 +466,7 @@ model TripPermission {
   responded_at       DateTime?
   responded_by_name  String?
   signature_id       String?
+  signature_data     String?
   created_at         DateTime       @default(now())
 
   @@unique([trip_id, student_profile_id])
