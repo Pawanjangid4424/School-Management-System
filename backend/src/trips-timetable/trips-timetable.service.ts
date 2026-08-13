@@ -449,6 +449,7 @@ export class TripsTimetableService {
     signatureId?: string,
     signatureData?: string,
   ) {
+    console.log(`[TripConsent] Received consent response for permission ${permissionId}: status=${status}`);
     const perm = await this.prisma.tripPermission.findUnique({
       where: { id: permissionId },
       include: { trip: true, student_profile: true },
@@ -474,7 +475,7 @@ export class TripsTimetableService {
         student_profile: true,
       },
     });
-
+    console.log(`[TripConsent] Successfully updated consent for permission ${permissionId} to ${status}`);
     return updated;
   }
 
