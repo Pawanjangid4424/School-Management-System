@@ -432,6 +432,7 @@ export class TripsTimetableService {
       permissionStatus: perm.permission_status,
       respondedByName: perm.responded_by_name || '',
       signatureId: perm.signature_id || '',
+      signatureData: perm.signature_data || '',
       respondedAt: perm.responded_at ? perm.responded_at.toISOString() : null,
       student: {
         name: `${perm.student_profile.first_name} ${perm.student_profile.last_name}`,
