@@ -56,6 +56,9 @@ export default function StudentTripsPage() {
     try {
       const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
       const res = await fetch(`${apiUrl}/trips/permission/${permissionId}/respond`, {
         method: 'POST',
@@ -64,13 +67,20 @@ export default function StudentTripsPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status, respondedByName: name, signatureData }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         fetchTrips(token as string);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error responding to trip consent', e);
+      if (e.name === 'AbortError') {
+        alert('Server timeout! The backend took too long to respond. Please check if your NEXT_PUBLIC_API_URL is correct or if the backend is offline.');
+      } else {
+        alert('Failed to submit consent. Network error or backend is unreachable.');
+      }
     }
   };
 
