@@ -164,9 +164,18 @@ export default function EditStudentPage() {
           localAddress: data.local_address || { addressDetails: '', city: '', state: '', pinCode: '' },
           sameAsPermanent: false,
       
-          fatherDetails: data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'FATHER')?.guardian_profile || { firstName: '', lastName: '', phone: '', email: '', occupation: '' },
-          motherDetails: data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'MOTHER')?.guardian_profile || { firstName: '', lastName: '', phone: '', email: '', occupation: '' },
-          localGuardianDetails: data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'GUARDIAN')?.guardian_profile || { firstName: '', lastName: '', phone: '', email: '', relation: '' },
+          fatherDetails: (() => {
+            const g = data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'FATHER')?.guardian_profile;
+            return g ? { firstName: g.first_name || '', lastName: g.last_name || '', phone: g.phone || '', email: g.email || '', occupation: g.occupation || '', officePhone: g.office_phone || '', annualIncome: g.annual_income ? String(g.annual_income) : '' } : { firstName: '', lastName: '', phone: '', email: '', occupation: '' };
+          })(),
+          motherDetails: (() => {
+            const g = data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'MOTHER')?.guardian_profile;
+            return g ? { firstName: g.first_name || '', lastName: g.last_name || '', phone: g.phone || '', email: g.email || '', occupation: g.occupation || '', officePhone: g.office_phone || '', annualIncome: g.annual_income ? String(g.annual_income) : '' } : { firstName: '', lastName: '', phone: '', email: '', occupation: '' };
+          })(),
+          localGuardianDetails: (() => {
+            const g = data.guardian_links?.find((l:any) => l.guardian_profile.relation_to_student === 'GUARDIAN')?.guardian_profile;
+            return g ? { firstName: g.first_name || '', lastName: g.last_name || '', phone: g.phone || '', email: g.email || '', relation: g.relation_to_student || '' } : { firstName: '', lastName: '', phone: '', email: '', relation: '' };
+          })(),
       
           photoUrl: data.photo_url || '',
           signatureUrl: data.signature_url || ''
